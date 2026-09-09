@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hail-Mary 통합 대시보드</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <circle class="ring" cx="16" cy="16" r="11"></circle>
+        <circle class="dot" cx="16" cy="16" r="3.2"></circle>
+      </svg>
+      <div class="brand-text">
+        <h1>Hail-Mary</h1>
+        <p class="subtitle">점유율 연동 에너지 수요예측 · 이상탐지</p>
+      </div>
+    </div>
+    <div class="status">
+      <span id="connStatus" class="pill pill-unknown">서버 확인 중</span>
+      <span id="lastUpdated" class="muted"></span>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="테마 전환">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="kpi-strip" id="kpiStrip" aria-label="핵심 지표 요약">
+    <div class="kpi-tile">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+      <div><div class="kpi-value" id="kpiOccupancy">–</div><div class="kpi-label">현재 총 점유율</div></div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg></div>
+      <div><div class="kpi-value" id="kpiAnomaly">–</div><div class="kpi-label">열린 이상 알림</div></div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div>
+      <div><div class="kpi-value" id="kpiAblation">–</div><div class="kpi-label">occupancy 예측 개선폭</div></div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 4 13c0-6 7-11 15-11 0 8-5 15-11 15a4.6 4.6 0 0 1-2-.4"></path><path d="M9 17l6-6"></path></svg></div>
+      <div><div class="kpi-value" id="kpiSavings">–</div><div class="kpi-label">이번 기간 절감률</div></div>
+    </div>
+  </section>
+
+  <main class="grid">
+    <!-- 1. 실시간 점유율 -->
+    <section class="card" id="occupancyCard">
+      <div class="card-head"><h2>실시간 점유율</h2></div>
+      <div class="occupancy-total"><span id="occupancyTotal">–</span><span class="unit">명</span></div>
+      <div class="muted" id="occupancyState">불러오는 중…</div>
+      <ul class="zone-list" id="zoneList"></ul>
+    </section>
+
+    <!-- 2. 예측 vs 실제 그래프 -->
+    <section class="card card-wide" id="forecastCard">
+      <div class="card-head">
+        <h2>예측 vs 실제 전력 사용량</h2>
+      </div>
+      <div class="controls">
+        <label>건물
+          <select id="buildingSelect">
+            <option value="Panther_office_Karla">Panther_office_Karla</option>
+            <option value="Panther_office_Catherine">Panther_office_Catherine</option>
+            <option value="Panther_office_Ruthie">Panther_office_Ruthie</option>
+          </select>
+        </label>
+        <label>horizon
+          <input type="number" id="horizonInput" min="1" value="24" style="width:4.5em">
+        </label>
+        <div class="view-toggle" role="group" aria-label="보기 방식">
+          <button type="button" id="chartViewBtn" aria-pressed="true">그래프</button>
+          <button type="button" id="tableViewBtn" aria-pressed="false">표</button>
+        </div>
+      </div>
+
+      <div class="chart-wrap" id="chartWrap">
+        <svg id="forecastChart" viewBox="0 0 720 280" role="img" aria-label="예측 대 실제 전력 사용량 그래프"></svg>
+        <div class="chart-tooltip" id="chartTooltip"></div>
+      </div>
+      <div class="forecast-table-wrap" id="tableWrap" hidden>
+        <table class="forecast-table">
+          <thead>
+            <tr><th>시간</th><th>실제</th><th>occupancy 반영</th><th>occupancy 미반영</th></tr>
+          </thead>
+          <tbody id="forecastTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="legend">
+        <span><i class="swatch swatch-actual"></i>실제(actual)</span>
+        <span><i class="swatch swatch-with"></i>occupancy 반영 예측</span>
+        <span><i class="swatch swatch-without"></i>occupancy 미반영 예측</span>
+      </div>
+      <div class="muted" id="forecastState">불러오는 중…</div>
+      <div id="ablationText" class="ablation-text"></div>
+    </section>
+
+    <!-- 3. 이상알림 리스트 -->
+    <section class="card" id="anomalyCard">
+      <div class="card-head"><h2>이상 알림 (open)</h2></div>
+      <div class="muted" id="anomalyState">불러오는 중…</div>
+      <ul class="anomaly-list" id="anomalyList"></ul>
+    </section>
+
+    <!-- 4. 절감/탄소 지표 카드 -->
+    <section class="card" id="savingsCard">
+      <div class="card-head"><h2>절감 / 탄소 지표</h2></div>
+      <div class="muted" id="savingsState">불러오는 중…</div>
+      <div class="savings-grid" id="savingsGrid" hidden>
+        <div class="metric metric-period" id="savingsPeriod">–</div>
+        <div class="metric">
+          <div class="metric-label"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 11-14h-7l1-6z"/></svg>절감 전력량</div>
+          <div class="metric-value" id="savingsKwh">–</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="19" y1="5" x2="5" y2="19"></line><circle cx="6.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle></svg>절감률</div>
+          <div class="metric-value" id="savingsPct">–</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 4 13c0-6 7-11 15-11 0 8-5 15-11 15a4.6 4.6 0 0 1-2-.4"></path><path d="M9 17l6-6"></path></svg>CO2 절감</div>
+          <div class="metric-value" id="savingsCo2">–</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22v-6"></path><path d="M8 15l4-4 4 4"></path><path d="M7 11l5-6 5 6"></path></svg>나무 환산</div>
+          <div class="metric-value" id="savingsTree">–</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. 마지막 목격 이미지 (zone별 1장, 전환마다 교체 -- 문서/제안서.md 9장 예외 참고) -->
+    <section class="card card-wide" id="lastSeenCard">
+      <div class="card-head">
+        <h2>마지막 목격</h2>
+        <span class="muted card-head-note">zone이 비는 순간의 이미지 1장 (누적 로그 아님)</span>
+      </div>
+      <div class="muted" id="lastSeenState">불러오는 중…</div>
+      <div class="last-seen-grid" id="lastSeenGrid"></div>
+    </section>
+
+    <!-- 6. 리포트 (인쇄/PDF 저장용 요약뷰) -->
+    <section class="card card-wide" id="reportCard">
+      <div class="card-head">
+        <h2>리포트</h2>
+        <button type="button" id="printReportBtn" class="print-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          인쇄 / PDF 저장
+        </button>
+      </div>
+      <div id="reportView" class="report-view">
+        <p class="report-title">Hail-Mary 운영 리포트</p>
+        <p class="report-period muted" id="reportPeriod">기간 정보 없음</p>
+        <dl class="report-grid">
+          <div><dt>현재 총 점유율</dt><dd id="reportOccupancy">–</dd></div>
+          <div><dt>절감 전력량</dt><dd id="reportSavedKwh">–</dd></div>
+          <div><dt>절감률</dt><dd id="reportSavedPct">–</dd></div>
+          <div><dt>CO2 절감</dt><dd id="reportCo2">–</dd></div>
+          <div><dt>occupancy 반영 예측 개선</dt><dd id="reportAblation">–</dd></div>
+          <div><dt>열린 이상 알림</dt><dd id="reportAnomalyCount">–</dd></div>
+        </dl>
+        <p class="report-generated muted" id="reportGeneratedAt"></p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

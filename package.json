@@ -1,0 +1,9 @@
+{
+  "name": "hail-mary-front",
+  "private": true,
+  "type": "module",
+  "description": "M11 dashboard: static HTML/CSS/JS, REST-polling only (no build step). Serve via the FastAPI static mount in Hail-mary-Server, or any static file server for local design work. Run unit tests with `npm test`.",
+  "scripts": {
+    "test": "node --test format.test.js"
+  }
+}
