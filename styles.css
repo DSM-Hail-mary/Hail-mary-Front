@@ -303,14 +303,17 @@ body {
   padding: 0.3rem 0.5rem;
 }
 
-.view-toggle {
-  margin-left: auto;
+.view-toggle,
+.chart-type-toggle {
   display: inline-flex;
   border: 1px solid var(--border);
   border-radius: var(--radius-control);
   overflow: hidden;
 }
-.view-toggle button {
+.chart-type-toggle { margin-left: auto; }
+.chart-type-toggle[hidden] { display: none; }
+.view-toggle button,
+.chart-type-toggle button {
   font: inherit;
   font-size: 0.78rem;
   padding: 0.3rem 0.7rem;
@@ -319,7 +322,8 @@ body {
   color: var(--text-secondary);
   cursor: pointer;
 }
-.view-toggle button[aria-pressed="true"] {
+.view-toggle button[aria-pressed="true"],
+.chart-type-toggle button[aria-pressed="true"] {
   background: var(--accent);
   color: white;
 }
@@ -342,6 +346,17 @@ body {
 .chart-line-actual { stroke: var(--series-actual); stroke-dasharray: 4 3; }
 .chart-line-with { stroke: var(--series-with); }
 .chart-line-without { stroke: var(--series-without); }
+
+.chart-bar { opacity: 0.85; }
+.chart-bar.chart-line-actual { fill: var(--series-actual); }
+.chart-bar.chart-line-with { fill: var(--series-with); }
+.chart-bar.chart-line-without { fill: var(--series-without); }
+
+.chart-scatter-dot { stroke: var(--surface-card); stroke-width: 1; }
+.chart-scatter-dot.chart-line-actual { fill: var(--series-actual); }
+.chart-scatter-dot.chart-line-with { fill: var(--series-with); }
+.chart-scatter-dot.chart-line-without { fill: var(--series-without); }
+
 .chart-hit { fill: transparent; }
 .chart-crosshair {
   stroke: var(--border-strong);

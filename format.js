@@ -185,6 +185,22 @@ export function formatRelativeTime(capturedAt, now = Date.now()) {
 }
 
 /**
+ * Given a shared x position (one tick on the chart) and how many series are
+ * plotted at that tick, split `groupWidth` evenly across them so their bars
+ * sit side by side, centered on x, without overlapping. Used by the bar
+ * chart-type view (line/bar/scatter tabs) in app.js.
+ */
+export function layoutBarGroup(centerX, seriesCount, groupWidth) {
+  if (seriesCount <= 0) return [];
+  const barWidth = groupWidth / seriesCount;
+  const startX = centerX - groupWidth / 2;
+  return Array.from({ length: seriesCount }, (_, j) => ({
+    x: startX + j * barWidth,
+    width: barWidth,
+  }));
+}
+
+/**
  * Build the small set of "at a glance" KPI values shown above the main
  * card grid, from data the dashboard already fetches (no new endpoints).
  * Each field is null when its source has no data yet, so the caller can

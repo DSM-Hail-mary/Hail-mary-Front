@@ -17,6 +17,7 @@ import {
   pickTickIndices,
   formatRelativeTime,
   buildKpiSummary,
+  layoutBarGroup,
 } from "./format.js";
 
 // ---- summarizeOccupancy ----
@@ -284,4 +285,28 @@ test("buildKpiSummary: pulls each value from its already-fetched source", () => 
     maeImprovementPct: 18.4,
     savedPct: 8.2,
   });
+});
+
+// ---- layoutBarGroup ----
+// Bar-chart view (see app.js chart-type tabs): several series share one x
+// tick, so their bars must sit side by side, centered on that tick, without
+// overlapping -- this is the pure layout math behind that.
+
+test("layoutBarGroup: splits the group width evenly and centers it on x", () => {
+  const bars = layoutBarGroup(100, 3, 30);
+  assert.equal(bars.length, 3);
+  assert.deepEqual(bars, [
+    { x: 85, width: 10 },
+    { x: 95, width: 10 },
+    { x: 105, width: 10 },
+  ]);
+});
+
+test("layoutBarGroup: a single series gets the full group width", () => {
+  const bars = layoutBarGroup(50, 1, 20);
+  assert.deepEqual(bars, [{ x: 40, width: 20 }]);
+});
+
+test("layoutBarGroup: zero series returns no bars, never throws", () => {
+  assert.deepEqual(layoutBarGroup(50, 0, 20), []);
 });

@@ -13,6 +13,7 @@ import {
   pickTickIndices,
   formatRelativeTime,
   buildKpiSummary,
+  layoutBarGroup,
 } from "./format.js";
 
 const POLL_MS = 5000;
@@ -33,6 +34,7 @@ const latest = {
   ablation: null,
   openAnomalyCount: null,
   savingsCard: null,
+  forecastChart: null,
 };
 
 async function getJSON(path) {
@@ -147,6 +149,23 @@ function seriesColor(varName) {
   return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
 }
 
+let chartType = "line";
+const CHART_TYPES = ["line", "bar", "scatter"];
+
+function setChartType(type) {
+  if (!CHART_TYPES.includes(type) || type === chartType) return;
+  chartType = type;
+  for (const btn of el("chartTypeToggle").querySelectorAll("button")) {
+    btn.setAttribute("aria-pressed", String(btn.dataset.chartType === type));
+  }
+  if (latest.forecastChart) renderForecastChart(latest.forecastChart);
+}
+
+el("chartTypeToggle").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-chart-type]");
+  if (btn) setChartType(btn.dataset.chartType);
+});
+
 function renderForecastChart(chart) {
   const svg = el("forecastChart");
   const tooltip = el("chartTooltip");
@@ -178,14 +197,37 @@ function renderForecastChart(chart) {
     svg.appendChild(label);
   }
 
-  // lines
+  // marks: line paths, grouped bars, or scatter dots depending on chartType
   const pointSets = {};
-  for (const s of SERIES_DEFS) {
+  const groupWidth = step * 0.6;
+  const baselineY = CHART_H - CHART_PAD;
+  SERIES_DEFS.forEach((s, si) => {
     const points = projectSeriesToPoints(chart[s.dataKey], CHART_W, CHART_H, CHART_PAD, range);
     pointSets[s.key] = points;
-    const d = pointsToPath(points);
-    if (d) svg.appendChild(svgEl("path", { d, class: `chart-line ${s.cls}` }));
-  }
+
+    if (chartType === "line") {
+      const d = pointsToPath(points);
+      if (d) svg.appendChild(svgEl("path", { d, class: `chart-line ${s.cls}` }));
+    } else if (chartType === "bar") {
+      points.forEach((p, i) => {
+        if (!p) return;
+        const x = CHART_PAD + i * step;
+        const bar = layoutBarGroup(x, SERIES_DEFS.length, groupWidth)[si];
+        svg.appendChild(svgEl("rect", {
+          x: bar.x.toFixed(1),
+          y: p.y.toFixed(1),
+          width: bar.width.toFixed(1),
+          height: Math.max(0, baselineY - p.y).toFixed(1),
+          class: `chart-bar ${s.cls}`,
+        }));
+      });
+    } else if (chartType === "scatter") {
+      points.forEach((p) => {
+        if (!p) return;
+        svg.appendChild(svgEl("circle", { cx: p.x.toFixed(1), cy: p.y.toFixed(1), r: 3, class: `chart-scatter-dot ${s.cls}` }));
+      });
+    }
+  });
 
   // crosshair + per-series hover dots (shown on pointermove)
   const crosshair = svgEl("line", { x1: 0, x2: 0, y1: CHART_PAD, y2: CHART_H - CHART_PAD, class: "chart-crosshair" });
@@ -275,6 +317,7 @@ function setForecastView(view) {
   const isChart = view === "chart";
   el("chartWrap").hidden = !isChart;
   el("tableWrap").hidden = isChart;
+  el("chartTypeToggle").hidden = !isChart;
   el("chartViewBtn").setAttribute("aria-pressed", String(isChart));
   el("tableViewBtn").setAttribute("aria-pressed", String(!isChart));
 }
@@ -290,6 +333,7 @@ async function refreshForecast() {
     if (horizon) params.set("horizon", horizon);
     const rows = await getJSON(`/api/v1/forecast?${params}`);
     const chart = buildForecastChart(rows);
+    latest.forecastChart = chart;
     renderForecastChart(chart);
     renderForecastTable(chart);
     el("forecastState").textContent = chart.hasData

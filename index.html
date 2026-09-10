@@ -77,6 +77,11 @@
         <label>horizon
           <input type="number" id="horizonInput" min="1" value="24" style="width:4.5em">
         </label>
+        <div class="chart-type-toggle" id="chartTypeToggle" role="group" aria-label="그래프 종류">
+          <button type="button" data-chart-type="line" aria-pressed="true">선</button>
+          <button type="button" data-chart-type="bar" aria-pressed="false">막대</button>
+          <button type="button" data-chart-type="scatter" aria-pressed="false">산점도</button>
+        </div>
         <div class="view-toggle" role="group" aria-label="보기 방식">
           <button type="button" id="chartViewBtn" aria-pressed="true">그래프</button>
           <button type="button" id="tableViewBtn" aria-pressed="false">표</button>
