@@ -18,6 +18,7 @@ import {
   formatRelativeTime,
   buildKpiSummary,
   layoutBarGroup,
+  escapeHtml,
 } from "./format.js";
 
 // ---- summarizeOccupancy ----
@@ -309,4 +310,29 @@ test("layoutBarGroup: a single series gets the full group width", () => {
 
 test("layoutBarGroup: zero series returns no bars, never throws", () => {
   assert.deepEqual(layoutBarGroup(50, 0, 20), []);
+});
+
+// ---- escapeHtml ----
+// Code review 2026-09-11: zone_id/severity/image_url from the API are
+// spliced into innerHTML/attribute strings with no escaping anywhere in the
+// codebase (zoneList, anomaly list, last-seen gallery alt/src). These
+// fields originate from the DB/edge pipeline rather than a browser text
+// input, but there's no escaping helper at all -- a real gap regardless of
+// how likely an actual attacker-controlled zone_id is.
+
+test("escapeHtml: escapes the five HTML-significant characters", () => {
+  assert.equal(escapeHtml(`<b>"a" & 'b'</b>`), "&lt;b&gt;&quot;a&quot; &amp; &#39;b&#39;&lt;/b&gt;");
+});
+
+test("escapeHtml: null/undefined become an empty string, never throw", () => {
+  assert.equal(escapeHtml(null), "");
+  assert.equal(escapeHtml(undefined), "");
+});
+
+test("escapeHtml: non-string values are stringified first", () => {
+  assert.equal(escapeHtml(42), "42");
+});
+
+test("escapeHtml: a value with no special characters passes through unchanged", () => {
+  assert.equal(escapeHtml("hall_main"), "hall_main");
 });

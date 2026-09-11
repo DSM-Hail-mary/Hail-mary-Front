@@ -348,9 +348,17 @@ body {
 .chart-line-without { stroke: var(--series-without); }
 
 .chart-bar { opacity: 0.85; }
-.chart-bar.chart-line-actual { fill: var(--series-actual); }
 .chart-bar.chart-line-with { fill: var(--series-with); }
 .chart-bar.chart-line-without { fill: var(--series-without); }
+/* "actual" gets a dashed outline instead of a solid fill -- same non-color
+   cue as the dashed line in line mode (기능명세서.md §5: 색만으로 구분 안 함). */
+.chart-bar-actual {
+  fill: var(--series-actual);
+  fill-opacity: 0.35;
+  stroke: var(--series-actual);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 2;
+}
 
 .chart-scatter-dot { stroke: var(--surface-card); stroke-width: 1; }
 .chart-scatter-dot.chart-line-actual { fill: var(--series-actual); }

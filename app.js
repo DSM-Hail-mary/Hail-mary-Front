@@ -14,6 +14,7 @@ import {
   formatRelativeTime,
   buildKpiSummary,
   layoutBarGroup,
+  escapeHtml,
 } from "./format.js";
 
 const POLL_MS = 5000;
@@ -108,7 +109,7 @@ async function refreshOccupancy() {
     el("occupancyTotal").textContent = summary.total;
     el("occupancyState").textContent = `${summary.zones.length}개 zone`;
     el("zoneList").innerHTML = summary.zones
-      .map((z) => `<li><span class="zone-name">${z.zone_id}</span><span class="zone-count">${z.count}</span></li>`)
+      .map((z) => `<li><span class="zone-name">${escapeHtml(z.zone_id)}</span><span class="zone-count">${z.count}</span></li>`)
       .join("");
     return true;
   } catch (err) {
@@ -197,34 +198,66 @@ function renderForecastChart(chart) {
     svg.appendChild(label);
   }
 
-  // marks: line paths, grouped bars, or scatter dots depending on chartType
+  // marks: line paths, grouped bars, or scatter dots depending on chartType.
+  // pointSets holds each series' *value* coordinate (shared, unoffset x) --
+  // used directly for line/scatter marks and for the tooltip's numeric
+  // values, but NOT for the bar-mode hover dot position (see hoverPointSets
+  // below): bars are drawn offset left/center/right within their x tick, so
+  // reusing the unoffset x there made hover dots float over the tick center
+  // instead of the bar they represent.
   const pointSets = {};
-  const groupWidth = step * 0.6;
+  const hoverPointSets = {};
+  // step === 0 (a single data point) would otherwise make groupWidth 0 and
+  // every bar invisible with no empty-state message -- fall back to a fixed
+  // width in that case, same as a single-category bar chart would use.
+  const groupWidth = step > 0 ? step * 0.6 : Math.min(60, CHART_W - 2 * CHART_PAD);
   const baselineY = CHART_H - CHART_PAD;
   SERIES_DEFS.forEach((s, si) => {
     const points = projectSeriesToPoints(chart[s.dataKey], CHART_W, CHART_H, CHART_PAD, range);
     pointSets[s.key] = points;
 
     if (chartType === "line") {
+      hoverPointSets[s.key] = points;
       const d = pointsToPath(points);
       if (d) svg.appendChild(svgEl("path", { d, class: `chart-line ${s.cls}` }));
     } else if (chartType === "bar") {
-      points.forEach((p, i) => {
-        if (!p) return;
+      const isActual = s.key === "actual";
+      hoverPointSets[s.key] = points.map((p, i) => {
+        if (!p) return null;
         const x = CHART_PAD + i * step;
         const bar = layoutBarGroup(x, SERIES_DEFS.length, groupWidth)[si];
+        // Non-color cue for "actual" (line mode uses a dashed stroke for the
+        // same reason -- 기능명세서.md §5 "차트는 색만으로 구분 안 함"):
+        // dashed outline instead of a solid fill.
         svg.appendChild(svgEl("rect", {
           x: bar.x.toFixed(1),
           y: p.y.toFixed(1),
           width: bar.width.toFixed(1),
           height: Math.max(0, baselineY - p.y).toFixed(1),
-          class: `chart-bar ${s.cls}`,
+          class: `chart-bar ${s.cls}${isActual ? " chart-bar-actual" : ""}`,
         }));
+        return { x: bar.x + bar.width / 2, y: p.y };
       });
     } else if (chartType === "scatter") {
+      hoverPointSets[s.key] = points;
+      const isActual = s.key === "actual";
       points.forEach((p) => {
         if (!p) return;
-        svg.appendChild(svgEl("circle", { cx: p.x.toFixed(1), cy: p.y.toFixed(1), r: 3, class: `chart-scatter-dot ${s.cls}` }));
+        if (isActual) {
+          // Diamond instead of a circle for "actual" -- shape, not just
+          // color, distinguishes it from the with/without series.
+          const size = 5;
+          svg.appendChild(svgEl("rect", {
+            x: (p.x - size / 2).toFixed(1),
+            y: (p.y - size / 2).toFixed(1),
+            width: size,
+            height: size,
+            transform: `rotate(45 ${p.x.toFixed(1)} ${p.y.toFixed(1)})`,
+            class: `chart-scatter-dot ${s.cls}`,
+          }));
+        } else {
+          svg.appendChild(svgEl("circle", { cx: p.x.toFixed(1), cy: p.y.toFixed(1), r: 3, class: `chart-scatter-dot ${s.cls}` }));
+        }
       });
     }
   });
@@ -255,7 +288,7 @@ function renderForecastChart(chart) {
 
     let rows = "";
     for (const s of SERIES_DEFS) {
-      const p = pointSets[s.key][i];
+      const p = hoverPointSets[s.key][i];
       const dot = hoverDots[s.key];
       if (p) {
         dot.setAttribute("cx", p.x);
@@ -367,14 +400,24 @@ function severityClass(severity) {
   return known.includes(s) ? `severity-${s}` : "severity-unknown";
 }
 
+// event_ids with an ack POST in flight. refreshAnomaly() re-renders the
+// whole list from scratch every 5s poll; without tracking this, a poll
+// landing mid-ack rebuilds a fresh, enabled "확인" button for that row
+// (the ack hasn't reached the server yet, so it's still "open"), erasing
+// the pending/disabled state and allowing a duplicate ack POST.
+const pendingAcks = new Set();
+
 async function ackAnomaly(eventId, button) {
+  pendingAcks.add(eventId);
   button.disabled = true;
   button.textContent = "처리 중…";
   try {
     const res = await fetch(`/api/v1/anomaly/${encodeURIComponent(eventId)}/ack`, { method: "POST" });
     if (!res.ok) throw new Error(`ack failed: HTTP ${res.status}`);
+    pendingAcks.delete(eventId);
     await refreshAnomaly();
   } catch (err) {
+    pendingAcks.delete(eventId);
     button.disabled = false;
     button.textContent = "확인 실패, 재시도";
     console.error(err);
@@ -396,14 +439,16 @@ async function refreshAnomaly() {
     list.innerHTML = "";
     for (const row of rows) {
       const cls = severityClass(row.severity);
+      const isPending = pendingAcks.has(row.event_id);
+      const residualText = typeof row.residual_kwh === "number" ? `${row.residual_kwh.toFixed(2)} kWh` : "–";
       const li = document.createElement("li");
       li.className = "anomaly-item";
       li.innerHTML =
-        `<span class="severity ${cls}">${SEVERITY_ICONS[cls]}${row.severity ?? "unknown"}</span>` +
-        `<span>${row.zone_id}</span>` +
+        `<span class="severity ${cls}">${SEVERITY_ICONS[cls]}${escapeHtml(row.severity ?? "unknown")}</span>` +
+        `<span>${escapeHtml(row.zone_id)}</span>` +
         `<span class="muted">${formatTimestamp(row.ts)}</span>` +
-        `<span>${row.residual_kwh?.toFixed ? row.residual_kwh.toFixed(2) : row.residual_kwh} kWh</span>` +
-        `<button class="ack-btn">확인</button>`;
+        `<span>${residualText}</span>` +
+        `<button class="ack-btn"${isPending ? " disabled" : ""}>${isPending ? "처리 중…" : "확인"}</button>`;
       li.querySelector(".ack-btn").addEventListener("click", (e) => ackAnomaly(row.event_id, e.target));
       list.appendChild(li);
     }
@@ -454,8 +499,8 @@ async function refreshLastSeen() {
     el("lastSeenGrid").innerHTML = rows
       .map(
         (r) => `<div class="last-seen-item">` +
-          `<img src="${r.image_url}" alt="${r.zone_id} 마지막 목격 이미지" loading="lazy">` +
-          `<div class="last-seen-meta"><span class="last-seen-zone">${r.zone_id}</span>` +
+          `<img src="${escapeHtml(r.image_url)}" alt="${escapeHtml(r.zone_id)} 마지막 목격 이미지" loading="lazy">` +
+          `<div class="last-seen-meta"><span class="last-seen-zone">${escapeHtml(r.zone_id)}</span>` +
           `<span class="last-seen-time">${formatRelativeTime(r.captured_at)}</span></div></div>`
       )
       .join("");

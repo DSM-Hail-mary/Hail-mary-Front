@@ -201,6 +201,24 @@ export function layoutBarGroup(centerX, seriesCount, groupWidth) {
 }
 
 /**
+ * Escape the five HTML-significant characters so a value can be safely
+ * interpolated into an innerHTML string or an HTML attribute value. Used for
+ * every API-sourced field the dashboard splices into innerHTML (zone_id,
+ * severity, image_url, ...) -- those originate from the DB/edge pipeline,
+ * not a browser text input, but nothing upstream validates their contents.
+ * null/undefined -> "" rather than the literal strings "null"/"undefined".
+ */
+export function escapeHtml(value) {
+  if (value == null) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
  * Build the small set of "at a glance" KPI values shown above the main
  * card grid, from data the dashboard already fetches (no new endpoints).
  * Each field is null when its source has no data yet, so the caller can
