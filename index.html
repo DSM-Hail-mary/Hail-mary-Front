@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Server가 이 폴더를 정적 마운트하는 같은-origin 배포라면 비워둘 것(기본값, app.js는
+     상대경로로 fetch함). Front를 별도 origin(python -m http.server 등)으로 띄울 때만
+     Server의 origin으로 채운다 -- Server의 main.py는 CORS를 전부 허용하므로 그 경우도
+     동작함(2026-09-14, README.md 참고). -->
+<meta name="hail-mary-api-base" content="">
 <title>Hail-Mary 통합 대시보드</title>
 <link rel="stylesheet" href="styles.css">
 </head>

@@ -1,6 +1,4 @@
 // M11 dashboard wiring: REST polling only (no WebSocket -- 개발계획서 1.1절 #8).
-// Talks to the same-origin FastAPI app mounted by main.py, so plain fetch()
-// with relative paths needs no CORS setup.
 import {
   summarizeOccupancy,
   buildForecastChart,
@@ -16,6 +14,18 @@ import {
   layoutBarGroup,
   escapeHtml,
 } from "./format.js";
+
+// API_BASE defaults to "" (same-origin relative fetch, e.g. Server statically
+// mounting this folder). Set the <meta name="hail-mary-api-base"> tag in
+// index.html to the Server's origin to talk to it from a different origin
+// (e.g. this folder served by its own static server) -- Server's main.py
+// allows all origins via CORSMiddleware, so that path works too (2026-09-14;
+// see README.md "실행"). Was previously same-origin-only -- code review found
+// Server had already stopped statically mounting this folder (main.py's own
+// comment: "M11 dashboard moved to the separate Hail-mary-Front repo"), so
+// the *only* documented deployment path (same-origin) no longer existed
+// anywhere in either repo's code, and neither repo's docs flagged the gap.
+const API_BASE = document.querySelector('meta[name="hail-mary-api-base"]')?.getAttribute("content") || "";
 
 const POLL_MS = 5000;
 const THEME_KEY = "hail-mary-theme";
@@ -39,7 +49,7 @@ const latest = {
 };
 
 async function getJSON(path) {
-  const res = await fetch(path);
+  const res = await fetch(`${API_BASE}${path}`);
   if (!res.ok) throw new Error(`${path} -> HTTP ${res.status}`);
   return res.json();
 }
@@ -412,7 +422,7 @@ async function ackAnomaly(eventId, button) {
   button.disabled = true;
   button.textContent = "처리 중…";
   try {
-    const res = await fetch(`/api/v1/anomaly/${encodeURIComponent(eventId)}/ack`, { method: "POST" });
+    const res = await fetch(`${API_BASE}/api/v1/anomaly/${encodeURIComponent(eventId)}/ack`, { method: "POST" });
     if (!res.ok) throw new Error(`ack failed: HTTP ${res.status}`);
   } catch (err) {
     // The ack POST itself failed -- this is a genuine ack failure.
@@ -511,7 +521,12 @@ async function refreshLastSeen() {
     el("lastSeenGrid").innerHTML = rows
       .map(
         (r) => `<div class="last-seen-item">` +
-          `<img src="${escapeHtml(r.image_url)}" alt="${escapeHtml(r.zone_id)} 마지막 목격 이미지" loading="lazy">` +
+          // r.image_url is a relative path from the API (e.g.
+          // "/api/v1/last-seen/hall_main/image") -- an <img src> resolves a
+          // relative URL against the *document's* origin, not fetch()'s, so
+          // this needs the same API_BASE prefix or it 404s whenever Front is
+          // served from a different origin than the API (2026-09-14).
+          `<img src="${escapeHtml(API_BASE + r.image_url)}" alt="${escapeHtml(r.zone_id)} 마지막 목격 이미지" loading="lazy">` +
           `<div class="last-seen-meta"><span class="last-seen-zone">${escapeHtml(r.zone_id)}</span>` +
           `<span class="last-seen-time">${formatRelativeTime(r.captured_at)}</span></div></div>`
       )
