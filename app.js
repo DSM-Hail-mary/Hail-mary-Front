@@ -109,7 +109,7 @@ async function refreshOccupancy() {
     el("occupancyTotal").textContent = summary.total;
     el("occupancyState").textContent = `${summary.zones.length}개 zone`;
     el("zoneList").innerHTML = summary.zones
-      .map((z) => `<li><span class="zone-name">${escapeHtml(z.zone_id)}</span><span class="zone-count">${z.count}</span></li>`)
+      .map((z) => `<li><span class="zone-name">${escapeHtml(z.zone_id)}</span><span class="zone-count">${escapeHtml(z.count)}</span></li>`)
       .join("");
     return true;
   } catch (err) {
@@ -302,7 +302,7 @@ function renderForecastChart(chart) {
       rows += `<div class="tt-row"><span class="tt-swatch" style="background:${color}"></span>${s.label}` +
         `<span class="tt-value">${val == null ? "–" : val.toFixed(2) + " kWh"}</span></div>`;
     }
-    tooltip.innerHTML = `<div class="tt-time">${formatTimestamp(chart.labels[i])}</div>${rows}`;
+    tooltip.innerHTML = `<div class="tt-time">${escapeHtml(formatTimestamp(chart.labels[i]))}</div>${rows}`;
     tooltip.classList.add("visible");
 
     const wrapRect = el("chartWrap").getBoundingClientRect();
@@ -341,7 +341,7 @@ function renderForecastTable(chart) {
   }
   const fmt = (v) => (v == null ? "–" : v.toFixed(2));
   tbody.innerHTML = chart.labels
-    .map((label, i) => `<tr><td>${formatTimestamp(label)}</td><td>${fmt(chart.actual[i])}</td>` +
+    .map((label, i) => `<tr><td>${escapeHtml(formatTimestamp(label))}</td><td>${fmt(chart.actual[i])}</td>` +
       `<td>${fmt(chart.withOcc[i])}</td><td>${fmt(chart.withoutOcc[i])}</td></tr>`)
     .join("");
 }
@@ -414,13 +414,25 @@ async function ackAnomaly(eventId, button) {
   try {
     const res = await fetch(`/api/v1/anomaly/${encodeURIComponent(eventId)}/ack`, { method: "POST" });
     if (!res.ok) throw new Error(`ack failed: HTTP ${res.status}`);
-    pendingAcks.delete(eventId);
-    await refreshAnomaly();
   } catch (err) {
+    // The ack POST itself failed -- this is a genuine ack failure.
     pendingAcks.delete(eventId);
     button.disabled = false;
     button.textContent = "확인 실패, 재시도";
     console.error(err);
+    return;
+  }
+  // Ack succeeded. Keep the eventId "pending" (button stays disabled/처리 중…)
+  // until the list refresh actually completes -- if the refresh GET fails
+  // (e.g. a brief network blip right after a succeeded ack), that must not
+  // be reported as an ack failure: the ack already landed server-side, and
+  // re-POSTing it from a misleading "재시도" click would just be a no-op at
+  // best. The next successful poll (5s) will re-render this row correctly.
+  pendingAcks.delete(eventId);
+  try {
+    await refreshAnomaly();
+  } catch (err) {
+    console.error("post-ack refresh failed (ack itself succeeded)", err);
   }
 }
 
@@ -446,7 +458,7 @@ async function refreshAnomaly() {
       li.innerHTML =
         `<span class="severity ${cls}">${SEVERITY_ICONS[cls]}${escapeHtml(row.severity ?? "unknown")}</span>` +
         `<span>${escapeHtml(row.zone_id)}</span>` +
-        `<span class="muted">${formatTimestamp(row.ts)}</span>` +
+        `<span class="muted">${escapeHtml(formatTimestamp(row.ts))}</span>` +
         `<span>${residualText}</span>` +
         `<button class="ack-btn"${isPending ? " disabled" : ""}>${isPending ? "처리 중…" : "확인"}</button>`;
       li.querySelector(".ack-btn").addEventListener("click", (e) => ackAnomaly(row.event_id, e.target));
