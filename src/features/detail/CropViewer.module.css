@@ -1,0 +1,253 @@
+.viewer {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--pw-surface);
+  border-radius: var(--pw-radius-card);
+  box-shadow: var(--pw-shadow-card);
+}
+
+.toolbar {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 12px 0 16px;
+  border-bottom: 1px solid var(--pw-divider);
+}
+
+.counter {
+  font-size: var(--pw-fs-card);
+  font-weight: 600;
+}
+
+.caption {
+  font-size: var(--pw-fs-small);
+  color: var(--pw-text-muted);
+}
+
+.spacer {
+  flex-grow: 1;
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: var(--pw-border);
+}
+
+.zoom {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.zoom button {
+  width: var(--pw-hit);
+  height: var(--pw-hit);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--pw-radius-control);
+  background: transparent;
+  color: var(--pw-text);
+}
+
+.zoom button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.zoom button:disabled {
+  color: var(--pw-text-disabled);
+}
+
+.zoomLabel {
+  width: 48px;
+  text-align: center;
+  font-size: var(--pw-fs-small);
+}
+
+.stageWrap {
+  padding: 16px 16px 0;
+}
+
+/* 본 이미지 4:3 */
+.stage {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--pw-radius-control);
+  background: var(--pw-crop-bg);
+  touch-action: none;
+  user-select: none;
+}
+
+.stage[data-zoomed] {
+  cursor: grab;
+}
+
+.stage[data-dragging] {
+  cursor: grabbing;
+}
+
+.stage:focus-visible {
+  box-shadow: var(--pw-focus-ring);
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  transform-origin: center;
+  transition: transform 0.2s ease-out;
+}
+
+.stage[data-dragging] .canvas {
+  transition: none;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.noCrop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(135deg, var(--pw-hatch-a) 0 8px, var(--pw-hatch-b) 8px 16px);
+  box-shadow: inset 0 0 0 1.5px var(--pw-border);
+  font-size: var(--pw-fs-small);
+  color: var(--pw-text-muted);
+}
+
+/* 검출 박스: 확대해도 선 굵기와 라벨 크기는 그대로 */
+.box {
+  position: absolute;
+  pointer-events: none;
+  animation: box-in 0.2s ease-out;
+}
+
+@keyframes box-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.boxHazard {
+  border: calc(3.5px / var(--zoom, 1)) solid var(--pw-brand);
+}
+
+.boxPole {
+  border: calc(2px / var(--zoom, 1)) dashed #ffffff;
+}
+
+.boxLabel {
+  position: absolute;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  line-height: 1.35;
+  white-space: nowrap;
+  transform: scale(calc(1 / var(--zoom, 1)));
+}
+
+.boxHazard .boxLabel {
+  bottom: 100%;
+  left: calc(-3.5px / var(--zoom, 1));
+  transform-origin: bottom left;
+  background: var(--pw-brand);
+  color: var(--pw-text-on-light);
+  font-weight: 700;
+}
+
+.boxPole .boxLabel {
+  top: calc(-2px / var(--zoom, 1));
+  left: 100%;
+  transform-origin: top left;
+  background: #ffffff;
+  color: var(--pw-text-on-light);
+  font-weight: 600;
+}
+
+.score {
+  font-family: var(--pw-font-mono);
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+/* 썸네일 5칸 */
+.thumbs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px 16px 16px;
+}
+
+.thumb {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  border-radius: var(--pw-radius-thumb);
+  background: transparent;
+  color: var(--pw-text-muted);
+}
+
+.thumbImage {
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--pw-radius-thumb);
+  box-shadow: 0 0 0 1px var(--pw-border);
+  background: var(--pw-crop-bg);
+  transition: box-shadow 0.12s;
+}
+
+.thumbImage img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+.thumb:hover .thumbImage img {
+  transform: scale(1.04);
+}
+
+.thumb:hover .thumbImage {
+  box-shadow: 0 0 0 1px var(--pw-text-muted);
+}
+
+.thumb[aria-pressed='true'] .thumbImage {
+  box-shadow: 0 0 0 3px var(--pw-brand);
+}
+
+.thumbLabel {
+  font-size: var(--pw-fs-caption);
+  text-align: center;
+}
+
+.thumb[aria-pressed='true'] .thumbLabel {
+  color: var(--pw-text);
+  font-weight: 700;
+}
+
+.emptySlot {
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--pw-radius-thumb);
+  box-shadow: inset 0 0 0 1.5px var(--pw-border);
+  background: repeating-linear-gradient(135deg, var(--pw-hatch-a) 0 8px, var(--pw-hatch-b) 8px 16px);
+  font-size: var(--pw-fs-caption);
+  color: var(--pw-text-muted);
+}

@@ -1,0 +1,97 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.center {
+  flex-grow: 1;
+  display: flex;
+}
+
+.subheader {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: var(--pw-subheader-h);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 var(--pw-page-pad) 0 12px;
+  background: var(--pw-surface);
+  border-bottom: 1px solid var(--pw-border);
+}
+
+.vdivider {
+  width: 1px;
+  height: 28px;
+  background: var(--pw-border);
+}
+
+.poleId {
+  font-size: var(--pw-fs-h1);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.unassigned {
+  color: var(--pw-text-muted);
+}
+
+.gradeBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 8px;
+  border-radius: 6px;
+  background: var(--pw-surface-raised);
+  font-size: var(--pw-fs-body);
+  font-weight: 700;
+}
+
+.gradeBadge[data-grade='danger'] {
+  background: var(--pw-danger-tint);
+  color: var(--pw-danger-text);
+}
+
+.gradeBadge[data-grade='ok'] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--pw-outline-subtle);
+  color: var(--pw-grade-ok-line);
+}
+
+.spacer {
+  flex-grow: 1;
+}
+
+.queue {
+  font-size: var(--pw-fs-small);
+  color: var(--pw-text-muted);
+}
+
+.queueValue {
+  color: var(--pw-text);
+  font-weight: 600;
+}
+
+.queueNav {
+  display: flex;
+  gap: 8px;
+}
+
+/* 크롭 뷰어 888 : 카드 480 (1440 기준) */
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(400px, 480px);
+  gap: var(--pw-page-pad);
+  align-items: start;
+  padding: var(--pw-page-pad);
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}

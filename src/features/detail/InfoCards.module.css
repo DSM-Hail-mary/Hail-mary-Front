@@ -1,0 +1,331 @@
+.label,
+.facts dt {
+  font-size: var(--pw-fs-caption);
+  color: var(--pw-text-muted);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.facts > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.facts dd {
+  font-size: var(--pw-fs-body);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.heading svg path {
+  transition: transform 0.3s;
+}
+
+/* 등급 근거 게이지 */
+.basis {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--pw-divider);
+}
+
+.basisHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.basisText {
+  font-size: var(--pw-fs-body);
+  font-weight: 600;
+}
+
+.gauge {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bar {
+  height: 8px;
+  border-radius: 2px;
+  background: var(--pw-track);
+  transition: background-color 0.2s;
+}
+
+.stepLabel {
+  font-size: var(--pw-fs-caption);
+  color: var(--pw-text-muted);
+}
+
+.step[data-on] .stepLabel {
+  font-weight: 700;
+  color: var(--pw-text);
+}
+
+.step[data-on][data-grade='danger'] .bar {
+  background: var(--pw-danger);
+}
+
+.step[data-on][data-grade='danger'] .stepLabel {
+  color: var(--pw-danger-text);
+}
+
+.step[data-on][data-grade='warn'] .bar {
+  background: var(--pw-text);
+}
+
+.step[data-on][data-grade='ok'] .bar {
+  background: var(--pw-grade-ok-line);
+}
+
+/* 판정 검수 */
+.reviewButtons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.reviewButton {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1.5px solid var(--pw-control-border);
+  border-radius: var(--pw-radius-control);
+  background: var(--pw-surface);
+  color: var(--pw-text);
+  font-size: var(--pw-fs-card);
+  font-weight: 600;
+  transition:
+    background-color 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.reviewButton:hover {
+  border-color: var(--pw-text-muted);
+}
+
+.reviewButton[aria-pressed='true'] {
+  background: var(--pw-text);
+  border-color: var(--pw-text);
+  color: var(--pw-text-on-light);
+}
+
+.notice {
+  align-items: flex-start;
+  padding: 12px 8px 12px 14px;
+  line-height: 1.55;
+  animation: fade-in 0.18s ease-out;
+}
+
+.notice p {
+  flex-grow: 1;
+  align-self: center;
+}
+
+.notice svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.noticeOk {
+  background: var(--pw-brand-tint);
+  padding-block: 0;
+  align-items: center;
+}
+
+.undoReview {
+  margin-block: -12px;
+  font-size: var(--pw-fs-small);
+}
+
+.noticeOk .undoReview {
+  margin-block: 0;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* 처리 상태 스테퍼 */
+.undo {
+  margin-right: -10px;
+  font-size: var(--pw-fs-small);
+}
+
+.stepper {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: -8px;
+}
+
+.track,
+.progress {
+  position: absolute;
+  top: 21px;
+  left: 12.5%;
+  height: 2px;
+}
+
+.track {
+  right: 12.5%;
+  background: var(--pw-border);
+}
+
+.progress {
+  background: var(--pw-text);
+  transition: width 0.25s ease-out;
+}
+
+.stepButton {
+  position: relative;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  border: none;
+  border-radius: var(--pw-radius-control);
+  background: transparent;
+  color: var(--pw-text-muted);
+}
+
+.stepButton:hover:not(:disabled) .dot {
+  transform: scale(1.08);
+}
+
+.dot {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--pw-control-border);
+  border-radius: 50%;
+  background: var(--pw-surface);
+  font-size: var(--pw-fs-small);
+  font-weight: 700;
+  transition:
+    transform 0.12s,
+    background-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.stepName {
+  font-size: var(--pw-fs-small);
+}
+
+.stepButton[data-state='done'] {
+  color: var(--pw-text);
+}
+
+.stepButton[data-state='done'] .dot {
+  border: none;
+  background: var(--pw-text);
+  color: var(--pw-text-on-light);
+}
+
+.stepButton[data-state='current'] {
+  color: var(--pw-text);
+  font-weight: 700;
+}
+
+.stepButton[data-state='current'] .dot {
+  border: none;
+  background: var(--pw-brand);
+  color: var(--pw-text-on-light);
+  box-shadow: 0 0 0 4px var(--pw-brand-ring);
+}
+
+/* 이력 비교 */
+.compare {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.compare figure {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.compare img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: var(--pw-radius-thumb);
+  background: var(--pw-crop-bg);
+}
+
+.compare figcaption {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--pw-fs-caption);
+  color: var(--pw-text-muted);
+}
+
+.today figcaption {
+  color: var(--pw-text);
+  font-weight: 600;
+}
+
+.change {
+  font-size: var(--pw-fs-body);
+}
+
+.change .label {
+  font-size: var(--pw-fs-body);
+}
+
+.from {
+  font-weight: 600;
+}
+
+.to {
+  font-weight: 700;
+}
+
+.to[data-grade='danger'] {
+  color: var(--pw-danger-text);
+}
+
+.summary {
+  margin-left: auto;
+  font-size: var(--pw-fs-caption);
+  color: var(--pw-text-muted);
+}
+
+.muted {
+  font-size: var(--pw-fs-small);
+  color: var(--pw-text-muted);
+}
+
+.error {
+  font-size: var(--pw-fs-caption);
+  color: var(--pw-danger-text);
+}
