@@ -1,12 +1,9 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
-import { config } from '@/config';
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { downloadCsv, recordsToCsv } from '@/domain/csv';
 import { formatShortDateTime, formatTime } from '@/domain/format';
 import { GRADES, GRADE_LABEL, HAZARD_LABEL, STATUS_LABEL, poleIdLabel } from '@/domain/labels';
 import {
   isFalsePositive,
-  pageOf,
-  paginate,
   type GradeCounts,
   type HazardFilter,
   type RecordFilters,
@@ -76,22 +73,9 @@ export function RecordList({
   showDate = false,
   empty,
 }: Props) {
-  const pageSize = config.listPageSize;
-  const [page, setPage] = useState(1);
   const listRef = useRef<HTMLOListElement>(null);
 
   // 지도에서 고른 기록이 다른 페이지에 있으면 그 페이지로 넘긴다 (렌더 중 상태 보정).
-  // 첫 표시(?sel= 로 들어온 경우), 선택 변경, 목록 내용 변경(로딩 완료·필터) 때마다 확인한다.
-  const selectionKey = `${selectedId}|${records.length}|${records[0]?.id ?? ''}`;
-  const [seenKey, setSeenKey] = useState<string | null>(null);
-  if (seenKey !== selectionKey) {
-    setSeenKey(selectionKey);
-    const target = selectedId ? pageOf(records, selectedId, pageSize) : null;
-    if (target && target !== page) setPage(target);
-  }
-
-  const view = paginate(records, page, pageSize);
-
   useEffect(() => {
     if (!selectedId) return;
     // 목록 상자 안에서만 스크롤한다 (scrollIntoView는 페이지 전체까지 움직여 모바일에서 지도가 밀려난다).
@@ -103,7 +87,7 @@ export function RecordList({
     else if (top + row.offsetHeight > list.scrollTop + list.clientHeight) {
       list.scrollTop = top + row.offsetHeight - list.clientHeight;
     }
-  }, [selectedId, view.page, records.length]);
+  }, [selectedId, records.length]);
 
   // ↑/↓: 목록 안에서 선택을 옮긴다 (페이지 경계도 넘는다).
   // 키를 빠르게 연달아 누르면 선택이 화면에 반영되기 전에 다음 키가 오므로, 마지막 이동 위치를 따로 기억한다.
@@ -153,7 +137,6 @@ export function RecordList({
               onChange={(v) => {
                 // 세그먼트 칸은 'all' 또는 등급만 보낸다 ('' 는 선택 표시용 값)
                 onFiltersChange({ grades: v === 'all' || v === '' ? GRADES : [v] });
-                setPage(1);
               }}
               segments={[
                 { value: 'all', label: '전체', count: counts.total },
@@ -169,7 +152,6 @@ export function RecordList({
                 options={HAZARD_OPTIONS}
                 onChange={(hazard) => {
                   onFiltersChange({ hazard });
-                  setPage(1);
                 }}
               />
               <LabeledSelect
@@ -178,7 +160,6 @@ export function RecordList({
                 options={STATUS_OPTIONS}
                 onChange={(status) => {
                   onFiltersChange({ status });
-                  setPage(1);
                 }}
               />
               <LabeledSelect
@@ -204,7 +185,7 @@ export function RecordList({
             onMouseLeave={() => onHover(null)}
             aria-label="전주 목록 (↑/↓로 이동, Esc로 선택 해제)"
           >
-            {view.items.map((r) => (
+            {records.map((r) => (
               <li key={r.id} className={styles.item}>
                 <RecordRow
                   showDate={showDate}
@@ -217,22 +198,6 @@ export function RecordList({
               </li>
             ))}
           </ol>
-          <div className={styles.pager}>
-            <span className="tabular">
-              {view.start + 1}–{view.end} / {records.length}건
-            </span>
-            <Button iconOnly aria-label="이전 페이지" disabled={view.page <= 1} onClick={() => setPage(view.page - 1)}>
-              <Icon name="chevronLeft" size={14} />
-            </Button>
-            <Button
-              iconOnly
-              aria-label="다음 페이지"
-              disabled={view.page >= view.pageCount}
-              onClick={() => setPage(view.page + 1)}
-            >
-              <Icon name="chevronRight" size={14} />
-            </Button>
-          </div>
         </>
       )}
     </section>

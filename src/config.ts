@@ -38,6 +38,4 @@ export const config = {
   },
   /** 상단 바 동기화 상태를 다시 묻는 간격. */
   syncPollMs: 5000,
-  /** 목록 한 페이지 행 수. */
-  listPageSize: 50,
 } as const;

@@ -135,20 +135,6 @@
   font-weight: 600;
 }
 
-.pager {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-top: 1px solid var(--pw-divider);
-  font-size: var(--pw-fs-small);
-  color: var(--pw-text-muted);
-}
-
-.pager > span {
-  margin-right: auto;
-}
-
 @media (max-width: 1100px) {
   .panel {
     width: var(--list-w, 380px);

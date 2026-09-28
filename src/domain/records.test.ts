@@ -8,8 +8,6 @@ import {
   exportableRecords,
   historySummary,
   intervalLabel,
-  pageOf,
-  paginate,
   previousStatus,
   priorityScore,
   toggleConfirm,
@@ -157,26 +155,6 @@ describe('dangerQueuePosition', () => {
 
   it('위험이 아니면 시각 기준 앞뒤 위험 기록을 찾는다', () => {
     expect(dangerQueuePosition(records, 'w1')).toEqual({ index: -1, total: 3, prevId: 'd1', nextId: 'd2' });
-  });
-});
-
-describe('paginate / pageOf', () => {
-  const items = Array.from({ length: 120 }, (_, i) => ({ id: String(i) }));
-
-  it('페이지 범위를 넘으면 끝 페이지로 맞춘다', () => {
-    const p = paginate(items, 9, 50);
-    expect(p).toMatchObject({ page: 3, pageCount: 3, start: 100, end: 120 });
-    expect(p.items).toHaveLength(20);
-  });
-
-  it('빈 목록도 1페이지', () => {
-    expect(paginate([], 1, 50)).toMatchObject({ page: 1, pageCount: 1, start: 0, end: 0 });
-  });
-
-  it('선택 기록이 있는 페이지', () => {
-    expect(pageOf(items, '0', 50)).toBe(1);
-    expect(pageOf(items, '50', 50)).toBe(2);
-    expect(pageOf(items, 'x', 50)).toBeNull();
   });
 });
 

@@ -7,7 +7,8 @@ test.describe('A. 지도·목록', () => {
     await expect(kpi(page)).toHaveText(['13', '3', '4', '6']);
     await expect(rows(page)).toHaveCount(13);
     await expect(markers(page)).toHaveCount(12);
-    await expect(page.getByText('1–13 / 13건')).toBeVisible();
+    await expect(page.getByText('13건')).toBeVisible();
+    await expect(page.getByRole('button', { name: '다음 페이지' })).toHaveCount(0); // 페이지 넘김 없음 (스크롤)
     const noLoc = rows(page).filter({ hasText: 'ID 미할당' });
     await expect(noLoc).toContainText('위치 없음');
   });
@@ -264,7 +265,6 @@ test.describe('A. 지도·목록', () => {
     await expect(page.getByRole('button', { name: /기준 날짜/ })).toContainText('전체 기간');
     await expect(kpi(page)).toHaveText(['29', '5', '7', '17']); // 오탐 1건 제외
     await expect(rows(page)).toHaveCount(30);
-    await expect(page.getByText('1–30 / 30건')).toBeVisible();
     // 여러 날짜가 섞이므로 시각 앞에 날짜
     await expect(rows(page).first()).toContainText('09.13 10:03:10');
     await expect(rows(page).last()).toContainText('09.27 09:31:02');

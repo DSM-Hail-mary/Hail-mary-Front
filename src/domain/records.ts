@@ -168,25 +168,6 @@ export function dangerQueuePosition(records: readonly PoleRecord[], currentId: s
   return { index: -1, total: queue.length, prevId: before?.id ?? null, nextId: after?.id ?? null };
 }
 
-export function paginate<T>(items: readonly T[], page: number, pageSize: number) {
-  const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
-  const current = Math.min(Math.max(1, page), pageCount);
-  const start = (current - 1) * pageSize;
-  return {
-    page: current,
-    pageCount,
-    start,
-    end: Math.min(start + pageSize, items.length),
-    items: items.slice(start, start + pageSize),
-  };
-}
-
-/** 선택된 기록이 있는 페이지 번호 (1부터). 없으면 `null`. */
-export function pageOf<T extends { id: string }>(items: readonly T[], id: string, pageSize: number): number | null {
-  const idx = items.findIndex((it) => it.id === id);
-  return idx < 0 ? null : Math.floor(idx / pageSize) + 1;
-}
-
 /** 두 날짜(YYYY-MM-DD) 사이 간격 문구: "2주", "5일". */
 export function intervalLabel(from: string, to: string): string {
   const days = Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
