@@ -1,16 +1,52 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useDriveDates, useDrives, useRecords } from '@/api/queries';
 import { formatDateLabel, isAllDates } from '@/domain/format';
 import { GRADES, GRADE_LABEL, HAZARD_LABEL, STATUS_LABEL } from '@/domain/labels';
 import { applyFilters, countByGrade, exportableRecords, type RecordFilters } from '@/domain/records';
 import { Button } from '@/ui/Button';
 import { EmptyState, Loading } from '@/ui/EmptyState';
+import { ResizeHandle } from '@/ui/ResizeHandle';
 import { KpiBar } from './KpiBar';
 import styles from './MapPage.module.css';
 import { PoleMap } from './PoleMap';
 import { RecordList } from './RecordList';
 import { SummaryCard } from './SummaryCard';
 import { useMapParams } from './useMapParams';
+
+/** 목록 폭 조절 (지도와 목록 사이 경계선을 끌어서). 브라우저에 기억한다. */
+const LIST_WIDTH_KEY = 'hailmary.listWidth';
+const LIST_DEFAULT = 440;
+const LIST_MIN = 320;
+/** 지도가 너무 좁아지지 않도록 화면 폭의 60%까지만 */
+const listMax = () => Math.max(LIST_MIN, Math.round(window.innerWidth * 0.6));
+
+function useListWidth() {
+  const [width, setWidth] = useState(() => {
+    try {
+      const saved = Number(localStorage.getItem(LIST_WIDTH_KEY));
+      if (saved >= LIST_MIN) return saved;
+    } catch {
+      // 무시
+    }
+    return LIST_DEFAULT;
+  });
+  const [max, setMax] = useState(listMax);
+  useEffect(() => {
+    const onResize = () => setMax(listMax());
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const change = (w: number) => {
+    setWidth(w);
+    try {
+      localStorage.setItem(LIST_WIDTH_KEY, String(w));
+    } catch {
+      // 무시
+    }
+  };
+  // 창을 줄이면 저장된 폭도 최대치 안으로
+  return { width: Math.min(width, max), max, change };
+}
 
 /** 화면 A. 지도·목록 */
 export function MapPage() {
@@ -29,6 +65,7 @@ export function MapPage() {
   const selected = visible.find((r) => r.id === selectedId) ?? null;
 
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const listWidth = useListWidth();
 
   // Esc: 선택 해제 (입력 중이거나 펼친 목록이 있으면 그쪽이 먼저 처리한다).
   useEffect(() => {
@@ -98,7 +135,7 @@ export function MapPage() {
   return (
     <div className={styles.page}>
       <KpiBar date={date} onDateChange={setDate} counts={recordsQuery.isSuccess ? counts : null} />
-      <div className={styles.body}>
+      <div className={styles.body} style={{ '--list-w': `${listWidth.width}px` } as CSSProperties}>
         <PoleMap
           drives={drivesQuery.data ?? []}
           records={visible}
@@ -111,6 +148,14 @@ export function MapPage() {
             <SummaryCard key={selected.id} record={selected} showDate={allDates} onClose={() => select(null)} />
           )}
         </PoleMap>
+        <ResizeHandle
+          label="목록 폭 조절"
+          width={listWidth.width}
+          min={LIST_MIN}
+          max={listWidth.max}
+          defaultWidth={LIST_DEFAULT}
+          onChange={listWidth.change}
+        />
         <RecordList
           date={date}
           records={visible}

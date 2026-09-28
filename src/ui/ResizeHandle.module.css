@@ -1,0 +1,55 @@
+/* 경계선 자체는 1px이지만 잡기 쉽게 좌우 6px씩 잡는 영역을 둔다 */
+.handle {
+  position: relative;
+  z-index: 700;
+  flex: 0 0 1px;
+  width: 1px;
+  margin: 0 -6px;
+  padding: 0 6px;
+  box-sizing: content-box;
+  background: var(--pw-border);
+  background-clip: content-box;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+/* 마우스를 올리거나 끄는 동안·포커스 시 노란 강조선 */
+.handle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 3px;
+  transform: translateX(-50%);
+  background: var(--pw-brand);
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.handle:hover::after,
+.handle:focus-visible::after,
+.handle[data-dragging]::after {
+  opacity: 1;
+}
+
+.handle:focus-visible {
+  box-shadow: none;
+  outline: none;
+}
+
+/* 끄는 동안 텍스트 선택·다른 요소 커서 변화를 막는다 */
+:global(body[data-resizing='col']) {
+  cursor: col-resize;
+  user-select: none;
+}
+
+:global(body[data-resizing='col']) * {
+  cursor: col-resize !important;
+}
+
+@media (max-width: 760px) {
+  .handle {
+    display: none;
+  }
+}

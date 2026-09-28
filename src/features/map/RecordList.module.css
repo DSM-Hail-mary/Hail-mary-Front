@@ -1,11 +1,12 @@
 .panel {
-  width: var(--pw-list-w);
+  /* 폭은 지도와의 경계선을 끌어 바꾼다 (MapPage --list-w). 경계선이 테두리를 대신 그린다. */
+  width: var(--list-w, var(--pw-list-w));
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
   background: var(--pw-surface);
-  border-left: 1px solid var(--pw-border);
 }
 
 .head {
@@ -150,7 +151,7 @@
 
 @media (max-width: 1100px) {
   .panel {
-    width: 380px;
+    width: var(--list-w, 380px);
   }
 
   .head {
@@ -165,7 +166,6 @@
 @media (max-width: 760px) {
   .panel {
     width: 100%;
-    border-left: none;
     border-top: 1px solid var(--pw-border);
   }
 

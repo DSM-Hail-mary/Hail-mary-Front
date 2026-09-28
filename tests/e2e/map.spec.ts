@@ -289,4 +289,51 @@ test.describe('A. 지도·목록', () => {
     await page.getByRole('link', { name: '지도', exact: true }).nth(1).click();
     await expect(page).toHaveURL(/date=all/);
   });
+
+  test('지도·목록 경계선을 끌어 목록 폭 조절 (최소·최대, 더블클릭 초기화, 키보드, 유지)', async ({ page }) => {
+    await openMap(page); // 1440×900
+    const handle = page.getByRole('separator', { name: '목록 폭 조절' });
+    const list = page.getByRole('region', { name: '전주 목록' });
+    const listW = async () => Math.round((await list.boundingBox())!.width);
+    expect(await listW()).toBe(440);
+
+    // 왼쪽으로 200px 끌면 목록이 넓어진다
+    const h = (await handle.boundingBox())!;
+    const y = h.y + h.height / 2;
+    await page.mouse.move(h.x + h.width / 2, y);
+    await page.mouse.down();
+    await page.mouse.move(h.x + h.width / 2 - 200, y, { steps: 8 });
+    await page.mouse.up();
+    expect(await listW()).toBe(640);
+
+    // 아주 멀리 끌어도 화면의 60%(864px), 반대로는 320px에서 멈춘다
+    const h2 = (await handle.boundingBox())!;
+    await page.mouse.move(h2.x + h2.width / 2, y);
+    await page.mouse.down();
+    await page.mouse.move(10, y, { steps: 8 });
+    await page.mouse.up();
+    expect(await listW()).toBe(864);
+    const h3 = (await handle.boundingBox())!;
+    await page.mouse.move(h3.x + h3.width / 2, y);
+    await page.mouse.down();
+    await page.mouse.move(1430, y, { steps: 8 });
+    await page.mouse.up();
+    expect(await listW()).toBe(320);
+
+    // 키보드: ← 로 16px씩 넓힌다
+    await handle.focus();
+    await page.keyboard.press('ArrowLeft');
+    expect(await listW()).toBe(336);
+    await expect(handle).toHaveAttribute('aria-valuenow', '336');
+
+    // 새로고침해도 유지, 더블클릭하면 기본 440px
+    await page.reload();
+    await expect(page.locator('[data-record-id]').first()).toBeVisible();
+    expect(await listW()).toBe(336);
+    await handle.dblclick();
+    expect(await listW()).toBe(440);
+
+    // 지도는 남은 폭을 채운다 (가로 스크롤 없음)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
 });
