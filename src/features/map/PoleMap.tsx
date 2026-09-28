@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { CircleMarker, MapContainer, Marker, Polyline, TileLayer, Tooltip } from 'react-leaflet';
 import { config } from '@/config';
 import { formatHourMinute } from '@/domain/format';
@@ -109,6 +109,11 @@ export interface PoleMapProps {
 
 export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHover, children }: PoleMapProps) {
   const [map, setMap] = useState<L.Map | null>(null);
+  const tiles = useTileHealth();
+  const tileHandlers = useMemo<L.LeafletEventHandlerFnMap>(
+    () => ({ tileerror: tiles.onError, tileload: tiles.onLoad }),
+    [tiles.onError, tiles.onLoad],
+  );
   const located = useMemo(
     () => records.filter((r): r is PoleRecord & { position: LatLng } => r.position !== null),
     [records],
@@ -159,6 +164,10 @@ export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHo
           // 움직이는 동안이 아니라 멈췄을 때만 타일을 받는다 → 요청 수가 줄어든다.
           updateWhenZooming={false}
           updateWhenIdle
+          keepBuffer={config.map.keepBuffer}
+          // 서비스 워커가 응답을 캐시할 수 있도록 CORS로 받는다 (OSM은 CORS 허용).
+          crossOrigin="anonymous"
+          eventHandlers={tileHandlers}
         />
         {drives.map((d) => (
           <DriveLayer key={d.id} drive={d} />
@@ -178,6 +187,13 @@ export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHo
 
       {children}
 
+      {tiles.failing && (
+        <p role="status" className={`${styles.floating} ${styles.tileNotice}`}>
+          지도 배경을 불러오지 못하고 있습니다 (타일 서버 요청 제한 또는 네트워크). 경로와 전주 마커는 그대로 볼 수
+          있습니다.
+        </p>
+      )}
+
       <Legend />
 
       <div className={`${styles.floating} ${styles.zoom}`}>
@@ -191,6 +207,25 @@ export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHo
       </div>
     </section>
   );
+}
+
+/** 짧은 시간에 타일 실패가 몰리면 배경 지도 문제로 보고 안내한다. 성공하면 바로 풀린다. */
+const TILE_FAIL_LIMIT = 8;
+const TILE_FAIL_WINDOW_MS = 10_000;
+
+function useTileHealth() {
+  const [failing, setFailing] = useState(false);
+  const failures = useRef<number[]>([]);
+  const onError = useCallback(() => {
+    const now = Date.now();
+    failures.current = [...failures.current.filter((t) => now - t < TILE_FAIL_WINDOW_MS), now];
+    if (failures.current.length >= TILE_FAIL_LIMIT) setFailing(true);
+  }, []);
+  const onLoad = useCallback(() => {
+    failures.current = [];
+    setFailing(false);
+  }, []);
+  return { failing, onError, onLoad };
 }
 
 function DriveLayer({ drive }: { drive: Drive }) {

@@ -181,3 +181,15 @@
   align-items: center;
   gap: 6px;
 }
+
+.tileNotice {
+  top: 20px;
+  left: 20px;
+  max-width: 380px;
+  padding: 10px 14px;
+  font-size: var(--pw-fs-small);
+  line-height: 1.5;
+  box-shadow:
+    inset 3px 0 0 var(--pw-danger-line),
+    var(--pw-shadow-floating-sm);
+}

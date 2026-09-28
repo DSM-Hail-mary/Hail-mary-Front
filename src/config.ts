@@ -16,6 +16,13 @@ export const config = {
     attribution:
       env.VITE_MAP_TILE_ATTRIBUTION || '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     /** 밝은 타일을 무채색 다크로 바꾸는 필터. 처음부터 어두운 타일을 쓰면 false. */
+    /** 타일을 서비스 워커로 7일간 캐시 (public/tile-sw.js). 반복 요청을 줄이고, 서버가 막혀도 본 적 있는 지역은 보인다. */
+    cacheTiles: env.VITE_MAP_TILE_CACHE !== 'false',
+    /**
+     * 화면 밖으로 미리 받아 둘 타일 줄 수 (Leaflet 기본 2).
+     * 3으로 조금만 늘렸다 — 드래그 시 빈칸이 줄고, 요청 증가는 캐시로 상쇄된다. 더 늘리면 공개 서버 제한에 걸릴 수 있다.
+     */
+    keepBuffer: 3,
     darkenTiles: env.VITE_MAP_TILE_DARKEN ? env.VITE_MAP_TILE_DARKEN !== 'false' : !env.VITE_MAP_TILE_URL,
   },
   /** 상단 바 동기화 상태를 다시 묻는 간격. */

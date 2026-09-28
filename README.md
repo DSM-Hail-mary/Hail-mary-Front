@@ -40,6 +40,7 @@ npm run check      # 타입 검사 + ESLint + 테스트
 | `VITE_API_BASE` | (빈 값) | `http` 모드 서버 주소. 비우면 같은 origin |
 | `VITE_MAP_TILE_URL` | OSM 표준 타일 | Leaflet 타일 URL 템플릿. **API 키 없이 동작** |
 | `VITE_MAP_TILE_DARKEN` | 타일 URL 미지정 시 `true` | 밝은 타일을 CSS 필터로 무채색 다크로 |
+| `VITE_MAP_TILE_CACHE` | `true` | 타일을 서비스 워커로 7일 캐시 (`public/tile-sw.js`) |
 | `VITE_MOCK_SYNC` | `done` | mock 동기화 초기 상태 `done`/`syncing`/`failed` (상태 화면 확인용) |
 
 mock 모드 예시 데이터는 2026-09-13, 09-20, 09-27 세 번의 주행입니다. 기준 날짜는 기본 "오늘"이라
@@ -51,6 +52,14 @@ mock 모드 예시 데이터는 2026-09-13, 09-20, 09-27 세 번의 주행입니
 [이용 정책](https://operations.osmfoundation.org/policies/tiles/)상 대량 트래픽용이 아니므로,
 실사용이 늘면 자체 타일 서버나 상용 타일로 `VITE_MAP_TILE_URL`을 바꾸세요.
 처음부터 어두운 타일을 쓰면 `VITE_MAP_TILE_DARKEN=false`.
+
+공개 타일 서버에 요청 제한이 걸리지 않도록 다음을 해 두었습니다.
+
+- 지도를 움직이는 동안이 아니라 멈췄을 때만 타일을 받고, 주행을 바꿀 때 줌 애니메이션을 쓰지 않습니다(중간 줌 타일 요청 없음).
+- 화면 밖 선행 로딩(`keepBuffer`)은 기본 2에서 3으로만 늘렸습니다 (`src/config.ts`).
+- 서비스 워커가 받은 타일을 7일간(최대 3000장) 캐시합니다. 같은 지역은 다시 요청하지 않고,
+  서버가 거절하거나 네트워크가 끊겨도 본 적 있는 타일은 보여 줍니다.
+- 타일 실패가 몰리면 지도 왼쪽 위에 안내가 뜹니다. 경로와 마커는 타일과 별개라 계속 보입니다.
 
 ## 구조
 
