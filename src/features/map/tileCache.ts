@@ -1,4 +1,5 @@
 import { config } from '@/config';
+import { getBaseLayers, tileHosts } from './baseLayers';
 
 /**
  * 타일 캐시 서비스 워커 등록 (public/tile-sw.js).
@@ -7,8 +8,8 @@ import { config } from '@/config';
 export function registerTileCache(): void {
   // 자동화 테스트(webdriver)에서는 등록하지 않는다 — Playwright가 타일 요청을 직접 막는다.
   if (!config.map.cacheTiles || !('serviceWorker' in navigator) || navigator.webdriver) return;
-  const host = new URL(config.map.tileUrl.replace('{s}', 'a')).hostname.replace(/^a\./, '');
-  const url = new URL(`tile-sw.js?host=${encodeURIComponent(host)}`, document.baseURI);
+  const hosts = tileHosts(getBaseLayers()).join(',');
+  const url = new URL(`tile-sw.js?hosts=${encodeURIComponent(hosts)}`, document.baseURI);
   navigator.serviceWorker.register(url, { scope: './' }).catch(() => {
     // 캐시는 부가 기능이라 실패해도 지도는 동작한다.
   });

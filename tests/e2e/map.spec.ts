@@ -173,4 +173,37 @@ test.describe('A. 지도·목록', () => {
     await expect(page.locator('.leaflet-tooltip', { hasText: '출발 09:11' })).toBeVisible();
     await expect(page.locator('.leaflet-tooltip', { hasText: '종료 09:32' })).toBeVisible();
   });
+
+  test('배경 지도 야간/흑백/컬러/위성 전환 (VWorld 키가 있을 때), 새로고침해도 유지', async ({ page }) => {
+    await openMap(page);
+    const switcher = page.getByRole('group', { name: '배경 지도' });
+    test.skip((await switcher.count()) === 0, 'VITE_VWORLD_KEY 없음 → 배경 레이어 1개라 전환 버튼 없음');
+    const tileSrcs = () =>
+      page.locator('.leaflet-tile').evaluateAll((els) => els.map((e) => (e as HTMLImageElement).src));
+
+    await expect(switcher.getByRole('button')).toHaveText(['야간', '흑백', '컬러', '위성']);
+    await expect(switcher.getByRole('button', { name: '야간' })).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(async () => (await tileSrcs()).some((s) => s.includes('/midnight/'))).toBe(true);
+
+    for (const [label, layer] of [
+      ['흑백', '/white/'],
+      ['컬러', '/Base/'],
+    ] as const) {
+      await switcher.getByRole('button', { name: label }).click();
+      await expect.poll(async () => (await tileSrcs()).some((s) => s.includes(layer))).toBe(true);
+    }
+
+    await switcher.getByRole('button', { name: '위성' }).click();
+    await expect(switcher.getByRole('button', { name: '위성' })).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(async () => (await tileSrcs()).some((s) => s.includes('/Satellite/'))).toBe(true);
+    await expect.poll(async () => (await tileSrcs()).some((s) => s.includes('/Hybrid/'))).toBe(true);
+    await expect.poll(async () => (await tileSrcs()).some((s) => s.includes('/midnight/'))).toBe(false);
+
+    await page.reload();
+    await expect(page.getByRole('group', { name: '배경 지도' }).getByRole('button', { name: '위성' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(page.locator('.leaflet-control-attribution')).toContainText('VWorld');
+  });
 });

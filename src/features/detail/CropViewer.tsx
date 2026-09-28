@@ -5,7 +5,12 @@ import { Switch } from '@/ui/controls';
 import { Icon } from '@/ui/Icon';
 import styles from './CropViewer.module.css';
 
-const ZOOMS = [1, 1.5, 2, 3] as const;
+/** 배율 범위와 버튼 한 번 간격 (1 = 100%). 휠은 1% 단위로 미세하게 움직인다. */
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 4;
+const BUTTON_STEP = 0.25;
+
+const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round(z * 100) / 100));
 const SLOTS = 5;
 /** 본 이미지 틀 비율 (856×642). */
 const FRAME_ASPECT = 4 / 3;
@@ -32,64 +37,76 @@ function focusOf(detections: readonly Detection[]): Pan {
 /**
  * 크롭 뷰어: 큰 이미지 + 검출 박스 + 확대/축소 + 썸네일 5칸.
  * - 썸네일 클릭 또는 ←/→ 로 크롭 전환
- * - 확대 상태에서 드래그로 이동, Ctrl+휠로 확대/축소
+ * - 휠로 1% 단위 미세 확대/축소 (100~400%), +/− 버튼은 25%씩
+ * - 확대 상태에서 드래그로 이동, 더블클릭으로 100% ↔ 200%
  */
 export function CropViewer({ crops }: { crops: readonly Crop[] }) {
   const [index, setIndex] = useState(0);
   const [showBoxes, setShowBoxes] = useState(true);
-  const [zoomIdx, setZoomIdx] = useState(0);
-  const [pan, setPan] = useState<Pan>({ x: 0, y: 0 });
+  // 배율과 이동 위치는 같이 바뀌므로 한 상태로 둔다 (휠 이벤트가 연달아 와도 어긋나지 않게).
+  const [view, setView] = useState<{ zoom: number; pan: Pan }>({ zoom: MIN_ZOOM, pan: { x: 0, y: 0 } });
+  const { zoom, pan } = view;
+  const setPan = (update: (p: Pan) => Pan) => setView((v) => ({ ...v, pan: update(v.pan) }));
   const drag = useRef<{ startX: number; startY: number; from: Pan; w: number; h: number } | null>(null);
   const [dragging, setDragging] = useState(false);
   /** 크롭 이미지 원본 비율 (가로/세로). 4:3이 아니면 틀 안에 여백을 두고 맞춰 박스 위치가 어긋나지 않게 한다. */
   const [aspect, setAspect] = useState(FRAME_ASPECT);
 
   const crop = crops[index];
-  const zoom = ZOOMS[zoomIdx] ?? 1;
 
-  const setZoom = (next: number) => {
-    const idx = Math.min(ZOOMS.length - 1, Math.max(0, next));
-    const z = ZOOMS[idx] ?? 1;
-    setZoomIdx(idx);
-    // 처음 확대할 때는 위험 요소 쪽으로, 이후엔 보던 지점이 가운데에 남도록 배율 비율만큼 옮긴다.
-    setPan((p) => clampPan(zoomIdx === 0 && crop ? scalePan(focusOf(crop.detections), z) : scalePan(p, z / zoom), z));
-  };
+  /** 배율을 바꾼다. 100%에서 처음 확대하면 위험 요소 쪽으로, 이후엔 보던 지점이 가운데에 남도록 옮긴다. */
+  const zoomTo = (next: (current: number) => number) =>
+    setView((v) => {
+      const z = clampZoom(next(v.zoom));
+      if (z === v.zoom) return v;
+      const base = v.zoom === MIN_ZOOM && crop ? scalePan(focusOf(crop.detections), z) : scalePan(v.pan, z / v.zoom);
+      return { zoom: z, pan: clampPan(base, z) };
+    });
+
+  /** 버튼·키보드: 25% 눈금에 맞춰 한 칸씩 (예: 137% → 150%, 125%). */
+  const stepZoom = (dir: 1 | -1) =>
+    zoomTo((z) => {
+      const snapped = dir > 0 ? Math.floor(z / BUTTON_STEP + 1e-9) + 1 : Math.ceil(z / BUTTON_STEP - 1e-9) - 1;
+      return snapped * BUTTON_STEP;
+    });
 
   const choose = (i: number) => {
     if (i !== index) setAspect(FRAME_ASPECT);
     setIndex(i);
-    setPan((p) => (zoomIdx === 0 ? p : clampPan(scalePan(focusOf(crops[i]?.detections ?? []), zoom), zoom)));
+    setPan((p) => (zoom === MIN_ZOOM ? p : clampPan(scalePan(focusOf(crops[i]?.detections ?? []), zoom), zoom)));
   };
 
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'ArrowRight' && index < crops.length - 1) choose(index + 1);
     else if (e.key === 'ArrowLeft' && index > 0) choose(index - 1);
-    else if (e.key === '+' || e.key === '=') setZoom(zoomIdx + 1);
-    else if (e.key === '-') setZoom(zoomIdx - 1);
+    else if (e.key === '+' || e.key === '=') stepZoom(1);
+    else if (e.key === '-') stepZoom(-1);
     else return;
     e.preventDefault();
   };
 
-  // Ctrl/⌘+휠 확대. React의 wheel 핸들러는 passive라 기본 동작(페이지 확대)을 막으려면 직접 등록한다.
+  // 휠 확대/축소: 굴린 양에 비례해 1% 단위 (트랙패드는 거의 1%씩, 마우스 휠 한 칸은 약 5%).
+  // React의 wheel 핸들러는 passive라 페이지 스크롤을 막으려면 직접 등록한다.
   const stageRef = useRef<HTMLDivElement>(null);
-  const zoomBy = useRef<(delta: number) => void>(() => {});
+  const zoomToRef = useRef(zoomTo);
   useEffect(() => {
-    zoomBy.current = (delta) => setZoom(zoomIdx + delta);
+    zoomToRef.current = zoomTo;
   });
   useEffect(() => {
     const el = stageRef.current;
     if (!el) return;
     const onWheel = (e: globalThis.WheelEvent) => {
-      if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
-      zoomBy.current(e.deltaY < 0 ? 1 : -1);
+      const px = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY; // 줄 단위(Firefox) → 픽셀
+      const percent = Math.sign(-px) * Math.max(1, Math.round(Math.abs(px) / 20));
+      zoomToRef.current((z) => z + percent / 100);
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
   }, [crop]);
 
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
-    if (zoom === 1) return;
+    if (zoom === MIN_ZOOM) return;
     const rect = e.currentTarget.getBoundingClientRect();
     drag.current = { startX: e.clientX, startY: e.clientY, from: pan, w: rect.width, h: rect.height };
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -98,7 +115,9 @@ export function CropViewer({ crops }: { crops: readonly Crop[] }) {
   const onPointerMove = (e: PointerEvent) => {
     const d = drag.current;
     if (!d) return;
-    setPan(clampPan({ x: d.from.x + (e.clientX - d.startX) / d.w, y: d.from.y + (e.clientY - d.startY) / d.h }, zoom));
+    setPan(() =>
+      clampPan({ x: d.from.x + (e.clientX - d.startX) / d.w, y: d.from.y + (e.clientY - d.startY) / d.h }, zoom),
+    );
   };
   const endDrag = () => {
     drag.current = null;
@@ -119,18 +138,13 @@ export function CropViewer({ crops }: { crops: readonly Crop[] }) {
         <Switch label="검출 박스" checked={showBoxes} onChange={setShowBoxes} />
         <span className={styles.divider} aria-hidden="true" />
         <div role="group" aria-label="확대/축소" className={styles.zoom}>
-          <button type="button" aria-label="축소" disabled={zoomIdx === 0} onClick={() => setZoom(zoomIdx - 1)}>
+          <button type="button" aria-label="축소" disabled={zoom <= MIN_ZOOM} onClick={() => stepZoom(-1)}>
             <Icon name="minus" />
           </button>
           <span className={`mono ${styles.zoomLabel}`} aria-live="polite">
             {Math.round(zoom * 100)}%
           </span>
-          <button
-            type="button"
-            aria-label="확대"
-            disabled={zoomIdx === ZOOMS.length - 1}
-            onClick={() => setZoom(zoomIdx + 1)}
-          >
+          <button type="button" aria-label="확대" disabled={zoom >= MAX_ZOOM} onClick={() => stepZoom(1)}>
             <Icon name="plus" />
           </button>
         </div>
@@ -141,17 +155,17 @@ export function CropViewer({ crops }: { crops: readonly Crop[] }) {
           <div
             ref={stageRef}
             className={styles.stage}
-            data-zoomed={zoom > 1 || undefined}
+            data-zoomed={zoom > MIN_ZOOM || undefined}
             data-dragging={dragging || undefined}
             tabIndex={0}
             role="img"
-            aria-label={`판정 크롭 이미지 ${index + 1}. ←/→ 로 크롭 전환, +/- 로 확대`}
+            aria-label={`판정 크롭 이미지 ${index + 1}. ←/→ 로 크롭 전환, 휠 또는 +/- 로 확대`}
             onKeyDown={onKey}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={endDrag}
             onPointerCancel={endDrag}
-            onDoubleClick={() => setZoom(zoomIdx === ZOOMS.length - 1 ? 0 : zoomIdx + 1)}
+            onDoubleClick={() => zoomTo((z) => (z > MIN_ZOOM ? MIN_ZOOM : 2))}
           >
             <div
               className={styles.canvas}

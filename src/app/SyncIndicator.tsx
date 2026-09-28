@@ -72,6 +72,20 @@ export function SyncIndicator() {
     );
   }
 
+  // 아직 한 번도 동기화하지 않았으면 "완료"라고 하지 않는다.
+  if (!sync.lastSyncedAt) {
+    return (
+      <div role="status" className={styles.sync}>
+        <span className={`${styles.syncState} ${styles.syncNone}`}>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2.5" />
+          </svg>
+          동기화 기록 없음
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div role="status" className={styles.sync}>
       <span className={styles.syncState}>

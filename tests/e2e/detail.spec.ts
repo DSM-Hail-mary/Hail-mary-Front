@@ -37,13 +37,40 @@ test.describe('B. 전주 상세·검수', () => {
     const zoomLabel = viewer.getByText(/^\d+%$/);
     await expect(zoomLabel).toHaveText('100%');
     await expect(viewer.getByRole('button', { name: '축소' })).toBeDisabled();
-    for (const z of ['150%', '200%', '300%']) {
+    // 버튼은 25%씩
+    for (const z of ['125%', '150%', '175%']) {
       await viewer.getByRole('button', { name: '확대' }).click();
       await expect(zoomLabel).toHaveText(z);
     }
-    await expect(viewer.getByRole('button', { name: '확대' })).toBeDisabled();
     await viewer.getByRole('button', { name: '축소' }).click();
-    await expect(zoomLabel).toHaveText('200%');
+    await expect(zoomLabel).toHaveText('150%');
+
+    // 휠은 1% 단위로 미세하게 (트랙패드처럼 작은 양)
+    const stageBox = (await stage.boundingBox())!;
+    await page.mouse.move(stageBox.x + stageBox.width / 2, stageBox.y + stageBox.height / 2);
+    await page.mouse.wheel(0, -20);
+    await expect(zoomLabel).toHaveText('151%');
+    await page.mouse.wheel(0, -20);
+    await expect(zoomLabel).toHaveText('152%');
+    await page.mouse.wheel(0, 20);
+    await expect(zoomLabel).toHaveText('151%');
+    // 마우스 휠 한 칸(100px)은 약 5%, 페이지는 스크롤되지 않는다
+    await page.mouse.wheel(0, -100);
+    await expect(zoomLabel).toHaveText('156%');
+    // 버튼은 다음 25% 눈금으로 맞춘다
+    await viewer.getByRole('button', { name: '확대' }).click();
+    await expect(zoomLabel).toHaveText('175%');
+    // 계속 굴려도 400%에서 멈추고, 반대로 굴리면 100%에서 멈춘다 (휠 세 칸씩 여러 번)
+    // 버튼을 누르느라 포인터가 툴바로 갔으니 이미지 위로 되돌린다
+    await page.mouse.move(stageBox.x + stageBox.width / 2, stageBox.y + stageBox.height / 2);
+    for (let i = 0; i < 20; i++) await page.mouse.wheel(0, -300);
+    await expect(zoomLabel).toHaveText('400%');
+    await expect(viewer.getByRole('button', { name: '확대' })).toBeDisabled();
+    for (let i = 0; i < 25; i++) await page.mouse.wheel(0, 300);
+    await expect(zoomLabel).toHaveText('100%');
+    await viewer.getByRole('button', { name: '확대' }).click();
+    await viewer.getByRole('button', { name: '확대' }).click();
+    await expect(zoomLabel).toHaveText('150%');
 
     // 확대 상태에서 드래그하면 이미지가 움직인다
     const canvas = stage.locator('> div');

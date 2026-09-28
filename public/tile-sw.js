@@ -3,20 +3,29 @@
  * - 한 번 받은 타일은 7일 동안 타일 서버에 다시 묻지 않는다 → 공개 타일 서버 요청 수를 줄인다.
  * - 타일 서버가 막히거나(요청 제한) 네트워크가 끊겨도 이미 받은 타일은 오래된 것이라도 보여 준다.
  * - 캐시는 최대 MAX_ENTRIES장, 넘으면 오래된 것부터 지운다.
- * 대상 호스트는 등록할 때 ?host= 로 넘긴다 (src/map/tileCache.ts).
+ * 대상 호스트는 등록할 때 ?hosts=a.com,b.com 으로 넘긴다 (src/features/map/tileCache.ts).
  */
-const HOST = new URL(self.location.href).searchParams.get('host');
-const CACHE = 'pw-tiles-v1';
+const HOSTS = (new URL(self.location.href).searchParams.get('hosts') || '').split(',').filter(Boolean);
+const CACHE = 'pw-tiles-v2';
 const TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_ENTRIES = 3000;
 const STAMP = 'x-pw-cached-at';
 
 self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+self.addEventListener('activate', (event) =>
+  event.waitUntil(
+    (async () => {
+      // 이전 버전 캐시 정리
+      for (const name of await caches.keys())
+        if (name.startsWith('pw-tiles-') && name !== CACHE) await caches.delete(name);
+      await self.clients.claim();
+    })(),
+  ),
+);
 
 function isTile(url) {
   // {s}.tile.example.org 같은 서브도메인 분산도 같은 호스트로 본다.
-  return HOST && (url.hostname === HOST || url.hostname.endsWith(`.${HOST}`));
+  return HOSTS.some((host) => url.hostname === host || url.hostname.endsWith(`.${host}`));
 }
 
 async function trim(cache) {

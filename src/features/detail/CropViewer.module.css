@@ -112,7 +112,8 @@
   margin: auto;
   background: var(--pw-crop-bg);
   transform-origin: center;
-  transition: transform 0.2s ease-out;
+  /* 휠로 1%씩 움직일 때도 따라오도록 짧게 */
+  transition: transform 0.08s ease-out;
 }
 
 .stage[data-dragging] .canvas {

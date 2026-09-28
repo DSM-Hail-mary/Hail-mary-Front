@@ -31,7 +31,10 @@ test.describe('공통 상단 바', () => {
     await expect(gradeSegment(page, '위험')).toHaveAttribute('aria-pressed', 'true');
 
     await page.getByRole('link', { name: '상세 보기' }).click();
+    // 상세 화면은 지연 로딩이라, 실제로 열린 뒤에 다른 탭으로 간다
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('3502-12672-E');
     await page.getByRole('link', { name: '기기 상태' }).click();
+    await expect(page).toHaveURL(/#\/device/);
     await page.getByRole('link', { name: '전주 상세·검수' }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('3502-12672-E');
   });

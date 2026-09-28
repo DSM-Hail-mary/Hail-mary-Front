@@ -21,6 +21,8 @@
 
 키보드: 목록 ↑/↓ 이동 · Esc 선택 해제 · 상세 `[` `]` 이전/다음 위험 전주 · 크롭 ←/→ 전환, +/− 확대 · 차트 ←/→ 값 보기
 
+줌: 지도는 휠을 굴린 만큼 끊김 없이, 크롭 이미지는 휠로 1% 단위(100~400%), +/− 버튼은 25%씩.
+
 ## 실행
 
 Node 20 이상.
@@ -51,19 +53,32 @@ E2E(`tests/e2e/`)는 세 화면의 모든 동작(필터·선택·검수·처리 
 
 | 변수 | 기본 | 설명 |
 |---|---|---|
-| `VITE_API_MODE` | `mock` | `mock`: 내장 예시 데이터 / `http`: 서버 API |
+| `VITE_API_MODE` | `mock` | `mock`: 서버 없이 빈 상태로 실행 / `http`: 서버 API |
 | `VITE_API_BASE` | (빈 값) | `http` 모드 서버 주소. 비우면 같은 origin |
+| `VITE_VWORLD_KEY` | (빈 값) | VWorld 배경지도 인증키. 있으면 야간·흑백·컬러·위성 4가지 모드 |
 | `VITE_MAP_TILE_URL` | OSM 표준 타일 | Leaflet 타일 URL 템플릿. **API 키 없이 동작** |
 | `VITE_MAP_TILE_DARKEN` | 타일 URL 미지정 시 `true` | 밝은 타일을 CSS 필터로 무채색 다크로 |
 | `VITE_MAP_TILE_CACHE` | `true` | 타일을 서비스 워커로 7일 캐시 (`public/tile-sw.js`) |
+| `VITE_MOCK_SAMPLE_DATA` | `false` | 테스트용 예시 데이터(가짜 전주) 사용. 자동 테스트만 켠다 |
 | `VITE_MOCK_SYNC` | `done` | mock 동기화 초기 상태 `done`/`syncing`/`failed` (상태 화면 확인용) |
 
-mock 모드 예시 데이터는 2026-09-13, 09-20, 09-27 세 번의 주행입니다. 기준 날짜는 기본 "오늘"이라
-처음엔 빈 상태가 나오고, "최근 기록 날짜로 이동"을 누르면 09-27 주행이 열립니다.
+서버 API가 생기기 전까지(`mock` 모드) 앱은 **빈 상태**로 뜹니다 — 가짜 전주를 보여 주지 않습니다.
+자동 테스트용 예시 데이터(`src/api/mock/sampleData.ts`, 2026-09-13·20·27 주행)는 `VITE_MOCK_SAMPLE_DATA=true`일 때만
+불러오며 배포 빌드에서도 별도 파일로 분리되어 평소에는 받지 않습니다.
 
 ### 지도 타일
 
-기본은 OpenStreetMap 공개 타일(키 불필요)입니다. OSM 공개 타일 서버는
+`VITE_VWORLD_KEY`가 있으면 VWorld(국토교통부) 배경지도를 쓰고, 지도 왼쪽 위 버튼으로 모드를 바꿉니다 (선택은 브라우저에 기억).
+
+| 모드 | VWorld 레이어 | 용도 |
+|---|---|---|
+| 야간 (기본) | midnight | 다크 화면 기본 |
+| 흑백 | white (반전) | 건물·등고선 없이 도로만 — 마커가 가장 잘 보임 |
+| 컬러 | Base | 건물·지명·등고선 포함 일반 지도 |
+| 위성 | Satellite + Hybrid | 컬러 위성 영상 + 도로명, 현장 대조용 |
+
+키는 https://www.vworld.kr 에서 무료로 발급받고, 사용할 주소(예: `http://localhost:5317`)를 등록해야 동작합니다.
+키가 없으면 OpenStreetMap 공개 타일(키 불필요)을 씁니다. OSM 공개 타일 서버는
 [이용 정책](https://operations.osmfoundation.org/policies/tiles/)상 대량 트래픽용이 아니므로,
 실사용이 늘면 자체 타일 서버나 상용 타일로 `VITE_MAP_TILE_URL`을 바꾸세요.
 처음부터 어두운 타일을 쓰면 `VITE_MAP_TILE_DARKEN=false`.

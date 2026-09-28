@@ -7,6 +7,7 @@ import { GRADE_LABEL, hazardLabel, poleIdLabel } from '@/domain/labels';
 import { isFalsePositive } from '@/domain/records';
 import type { Drive, LatLng, PoleRecord } from '@/domain/types';
 import { GradeGlyph, gradeGlyphHtml } from '@/ui/GradeGlyph';
+import { getBaseLayers, type BaseLayerId } from './baseLayers';
 import { Icon } from '@/ui/Icon';
 import './leaflet-overrides.css';
 import styles from './PoleMap.module.css';
@@ -118,6 +119,8 @@ export interface PoleMapProps {
 
 export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHover, children }: PoleMapProps) {
   const [map, setMap] = useState<L.Map | null>(null);
+  const [baseLayerId, setBaseLayerId] = useBaseLayerChoice();
+  const baseLayer = BASE_LAYERS.find((l) => l.id === baseLayerId) ?? BASE_LAYERS[0]!;
   const tiles = useTileHealth();
   const tileHandlers = useMemo<L.LeafletEventHandlerFnMap>(
     () => ({ tileerror: tiles.onError, tileload: tiles.onLoad }),
@@ -164,21 +167,31 @@ export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHo
         zoomControl={false}
         attributionControl
         keyboard
-        zoomSnap={0.5}
-        wheelPxPerZoomLevel={90}
+        // 휠 줌: 단계에 끊기지 않고 굴린 만큼 조금씩 (연속 줌). 값이 클수록 한 칸에 덜 움직인다.
+        zoomSnap={0}
+        wheelPxPerZoomLevel={240}
+        wheelDebounceTime={20}
+        // +/− 버튼은 반 단계씩
+        zoomDelta={0.5}
       >
-        <TileLayer
-          url={config.map.tileUrl}
-          attribution={config.map.attribution}
-          className={config.map.darkenTiles ? styles.darkTiles : undefined}
-          // 움직이는 동안이 아니라 멈췄을 때만 타일을 받는다 → 요청 수가 줄어든다.
-          updateWhenZooming={false}
-          updateWhenIdle
-          keepBuffer={config.map.keepBuffer}
-          // 서비스 워커가 응답을 캐시할 수 있도록 CORS로 받는다 (OSM은 CORS 허용).
-          crossOrigin="anonymous"
-          eventHandlers={tileHandlers}
-        />
+        {baseLayer.tiles.map((t) => (
+          <TileLayer
+            // 레이어를 바꾸면 새 타일 레이어로 갈아 끼운다
+            key={`${baseLayer.id}:${t.url}`}
+            url={t.url}
+            attribution={t.attribution}
+            maxNativeZoom={t.maxNativeZoom}
+            maxZoom={20}
+            className={t.darken ? styles.darkTiles : undefined}
+            // 움직이는 동안이 아니라 멈췄을 때만 타일을 받는다 → 요청 수가 줄어든다.
+            updateWhenZooming={false}
+            updateWhenIdle
+            keepBuffer={config.map.keepBuffer}
+            // 서비스 워커가 응답을 캐시할 수 있도록 CORS로 받는다 (OSM·VWorld 모두 허용).
+            crossOrigin="anonymous"
+            eventHandlers={tileHandlers}
+          />
+        ))}
         {drives.map((d) => (
           <DriveLayer key={d.id} drive={d} />
         ))}
@@ -196,6 +209,16 @@ export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHo
       </MapContainer>
 
       {children}
+
+      {BASE_LAYERS.length > 1 && (
+        <div role="group" aria-label="배경 지도" className={`${styles.floating} ${styles.layerSwitch}`}>
+          {BASE_LAYERS.map((l) => (
+            <button key={l.id} type="button" aria-pressed={l.id === baseLayer.id} onClick={() => setBaseLayerId(l.id)}>
+              {l.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {tiles.failing && (
         <p role="status" className={`${styles.floating} ${styles.tileNotice}`}>
@@ -217,6 +240,31 @@ export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHo
       </div>
     </section>
   );
+}
+
+const BASE_LAYERS = getBaseLayers();
+const LAYER_STORAGE_KEY = 'polewatch.baseLayer';
+
+/** 일반/위성 선택. 다음에 열어도 유지되도록 localStorage에 둔다 (못 쓰면 기본값). */
+function useBaseLayerChoice() {
+  const [id, setId] = useState<BaseLayerId>(() => {
+    try {
+      const saved = localStorage.getItem(LAYER_STORAGE_KEY);
+      if (BASE_LAYERS.some((l) => l.id === saved)) return saved as BaseLayerId;
+    } catch {
+      // 무시
+    }
+    return BASE_LAYERS[0]!.id;
+  });
+  const choose = useCallback((next: BaseLayerId) => {
+    setId(next);
+    try {
+      localStorage.setItem(LAYER_STORAGE_KEY, next);
+    } catch {
+      // 무시
+    }
+  }, []);
+  return [id, choose] as const;
 }
 
 /** 짧은 시간에 타일 실패가 몰리면 배경 지도 문제로 보고 안내한다. 성공하면 바로 풀린다. */

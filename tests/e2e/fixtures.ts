@@ -22,7 +22,7 @@ export const test = base.extend<{ consoleErrors: string[] }>({
     { auto: true },
   ],
   page: async ({ page }, use) => {
-    await page.route(/tile\.openstreetmap\.org|basemaps\.cartocdn\.com/, (route) =>
+    await page.route(/tile\.openstreetmap\.org|basemaps\.cartocdn\.com|api\.vworld\.kr\/req\/wmts/, (route) =>
       route.fulfill({ status: 200, contentType: 'image/png', body: BLANK_PNG }),
     );
     await use(page);

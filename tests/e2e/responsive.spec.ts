@@ -75,8 +75,13 @@ test.describe('반응형: 화면을 꽉 채우고 가로로 넘치지 않는다'
     const listBox = (await list.boundingBox())!;
     expect(listBox.y).toBeGreaterThanOrEqual(mapBox.y + mapBox.height - 1);
     expect(listBox.width).toBeGreaterThan(380);
-    const card = (await summaryCard(page).boundingBox())!;
-    expect(Math.round(card.y + card.height)).toBe(Math.round(mapBox.y + mapBox.height));
+    // 하단 시트는 올라오는 애니메이션(0.18초)이 끝난 뒤 지도 아래 끝에 붙는다
+    await expect
+      .poll(async () => {
+        const card = (await summaryCard(page).boundingBox())!;
+        return Math.round(card.y + card.height);
+      })
+      .toBe(Math.round(mapBox.y + mapBox.height));
     // 선택 행으로 페이지가 밀려 내려가지 않는다
     expect(await page.evaluate(() => document.querySelector('main')!.scrollTop)).toBe(0);
     for (const tab of ['지도·목록', '전주 상세·검수', '기기 상태']) {

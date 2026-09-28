@@ -68,6 +68,11 @@
   font-weight: 600;
 }
 
+.syncNone {
+  color: var(--pw-nav-text);
+  font-weight: 500;
+}
+
 .syncMeta {
   display: flex;
   align-items: center;

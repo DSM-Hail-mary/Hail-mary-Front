@@ -182,6 +182,41 @@
   gap: 6px;
 }
 
+.layerSwitch {
+  top: 20px;
+  left: 20px;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+}
+
+.layerSwitch button {
+  height: 36px;
+  min-width: 52px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--pw-text-2);
+  font-size: var(--pw-fs-small);
+  font-weight: 500;
+}
+
+.layerSwitch button:hover {
+  color: var(--pw-text);
+}
+
+.layerSwitch button[aria-pressed='true'] {
+  background: var(--pw-surface-raised);
+  color: var(--pw-text);
+  font-weight: 700;
+}
+
+/* 전환 버튼이 있으면 타일 안내는 그 아래로 */
+.layerSwitch ~ .tileNotice {
+  top: 72px;
+}
+
 .tileNotice {
   top: 20px;
   left: 20px;
@@ -210,6 +245,41 @@
   .zoom {
     right: 12px;
     bottom: 20px;
+  }
+
+  .layerSwitch {
+    top: 20px;
+    left: 20px;
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+  }
+
+  .layerSwitch button {
+    height: 36px;
+    min-width: 52px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--pw-text-2);
+    font-size: var(--pw-fs-small);
+    font-weight: 500;
+  }
+
+  .layerSwitch button:hover {
+    color: var(--pw-text);
+  }
+
+  .layerSwitch button[aria-pressed='true'] {
+    background: var(--pw-surface-raised);
+    color: var(--pw-text);
+    font-weight: 700;
+  }
+
+  /* 전환 버튼이 있으면 타일 안내는 그 아래로 */
+  .layerSwitch ~ .tileNotice {
+    top: 72px;
   }
 
   .tileNotice {

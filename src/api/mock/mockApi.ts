@@ -1,11 +1,22 @@
 import { dateOf } from '@/domain/format';
-import type { DriveDate, PoleRecord, SyncStatus } from '@/domain/types';
+import type { DeviceLog, Drive, DriveDate, PoleRecord, SyncStatus } from '@/domain/types';
 import { ApiError, type PoleWatchApi } from '../PoleWatchApi';
-import { createMockDataset } from './data';
 
 export type MockSyncMode = 'done' | 'syncing' | 'failed';
 
+export interface MockDataset {
+  records: PoleRecord[];
+  drives: Drive[];
+  deviceLogs: DeviceLog[];
+  lastSyncedAt: string | null;
+}
+
+/** 기록이 하나도 없는 상태. 서버 없이 앱을 띄울 때의 기본값이다 (가짜 전주를 보여 주지 않는다). */
+export const EMPTY_DATASET: MockDataset = { records: [], drives: [], deviceLogs: [], lastSyncedAt: null };
+
 export interface MockApiOptions {
+  /** 기본은 빈 데이터. 테스트는 sampleData.ts의 예시 데이터를 넘긴다. */
+  dataset?: MockDataset;
   /** 응답 지연 (ms). 로딩 상태를 눈으로 확인하려고 둔다. */
   latencyMs?: number;
   initialSync?: MockSyncMode;
@@ -18,8 +29,13 @@ const SYNC_TOTAL_IMAGES = 340;
 
 /** 메모리 안에서 동작하는 API. 새로고침하면 처음 상태로 돌아간다. */
 export function createMockApi(options: MockApiOptions = {}): PoleWatchApi {
-  const { latencyMs = 40, initialSync = 'done', syncDurationMs = 8000, now = Date.now } = options;
-  const data = createMockDataset();
+  const {
+    dataset: data = EMPTY_DATASET,
+    latencyMs = 40,
+    initialSync = 'done',
+    syncDurationMs = 8000,
+    now = Date.now,
+  } = options;
   const records = new Map<string, PoleRecord>(data.records.map((r) => [r.id, r]));
   let lastSyncedAt: string | null = data.lastSyncedAt;
   let sync: { state: 'done' } | { state: 'syncing'; startedAt: number } | { state: 'failed'; reason: string } =

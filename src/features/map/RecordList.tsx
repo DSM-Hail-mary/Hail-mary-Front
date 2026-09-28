@@ -103,12 +103,18 @@ export function RecordList({
   }, [selectedId, view.page, records.length]);
 
   // ↑/↓: 목록 안에서 선택을 옮긴다 (페이지 경계도 넘는다).
+  // 키를 빠르게 연달아 누르면 선택이 화면에 반영되기 전에 다음 키가 오므로, 마지막 이동 위치를 따로 기억한다.
+  const cursor = useRef(selectedId);
+  useEffect(() => {
+    cursor.current = selectedId;
+  }, [selectedId]);
   const onListKey = (e: KeyboardEvent) => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
     e.preventDefault();
-    const idx = selectedId ? records.findIndex((r) => r.id === selectedId) : -1;
+    const idx = cursor.current ? records.findIndex((r) => r.id === cursor.current) : -1;
     const next = records[e.key === 'ArrowDown' ? Math.min(records.length - 1, idx + 1) : Math.max(0, idx - 1)];
     if (!next) return;
+    cursor.current = next.id;
     onSelect(next.id);
     requestAnimationFrame(() =>
       listRef.current?.querySelector<HTMLElement>(`[data-record-id="${CSS.escape(next.id)}"]`)?.focus(),

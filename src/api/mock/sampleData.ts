@@ -13,8 +13,12 @@ import type {
   ReviewResult,
 } from '@/domain/types';
 import { CROP_VIEWS, mockCrop, mockThumbnail } from './images';
+import type { MockDataset } from './mockApi';
 
 /**
+ * ⚠ 테스트 전용 예시 데이터 — 실제 전주가 아니다.
+ * 앱을 그냥 실행하면 불러오지 않는다. VITE_MOCK_SAMPLE_DATA=true 일 때만(자동 테스트) 쓴다.
+ *
  * 목 모드 예시 데이터. 2026-09-27 주행은 디자인 아트보드의 샘플 값을 그대로 옮겼고,
  * 이력 비교용으로 09-13, 09-20 주행을 덧붙였다. 전주 ID·좌표·수치는 모두 예시다.
  */
@@ -343,14 +347,7 @@ function buildDeviceLogs(drives: Drive[]): DeviceLog[] {
   });
 }
 
-export interface MockDataset {
-  records: PoleRecord[];
-  drives: Drive[];
-  deviceLogs: DeviceLog[];
-  lastSyncedAt: string;
-}
-
-export function createMockDataset(): MockDataset {
+export function createSampleDataset(): MockDataset {
   const drives = buildDrives();
   return {
     records: buildRecords(),

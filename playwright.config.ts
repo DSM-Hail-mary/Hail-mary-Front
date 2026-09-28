@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * E2E 기능 테스트 (mock 데이터). `npm run e2e`
+ * E2E 기능 테스트 (mock API + 테스트 전용 예시 데이터 src/api/mock/sampleData.ts). `npm run e2e`
  * - 기본 서버: 동기화 완료 상태
  * - 두 번째 서버: 동기화 실패 상태에서 시작 (VITE_MOCK_SYNC=failed)
  * 지도 타일 요청은 테스트 안에서 가짜 응답으로 막아 외부 타일 서버를 부르지 않는다 (tests/e2e/fixtures.ts).
@@ -30,12 +30,14 @@ export default defineConfig({
       command: `npx vite --port ${PORT} --strictPort`,
       port: PORT,
       reuseExistingServer: !process.env.CI,
+      // 테스트는 예시 데이터로 돌린다 (앱 기본 실행은 빈 상태)
+      env: { VITE_MOCK_SAMPLE_DATA: 'true' },
     },
     {
       command: `npx vite --port ${FAILED_SYNC_PORT} --strictPort`,
       port: FAILED_SYNC_PORT,
       reuseExistingServer: !process.env.CI,
-      env: { VITE_MOCK_SYNC: 'failed' },
+      env: { VITE_MOCK_SYNC: 'failed', VITE_MOCK_SAMPLE_DATA: 'true' },
     },
   ],
 });
