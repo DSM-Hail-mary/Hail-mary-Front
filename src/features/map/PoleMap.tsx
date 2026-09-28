@@ -1,13 +1,12 @@
 import L from 'leaflet';
 import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { CircleMarker, MapContainer, Marker, Polyline, TileLayer, Tooltip } from 'react-leaflet';
 import { config } from '@/config';
 import { formatHourMinute } from '@/domain/format';
 import { GRADE_LABEL, hazardLabel, poleIdLabel } from '@/domain/labels';
 import { isFalsePositive } from '@/domain/records';
 import type { Drive, LatLng, PoleRecord } from '@/domain/types';
-import { GradeGlyph } from '@/ui/GradeGlyph';
+import { GradeGlyph, gradeGlyphHtml } from '@/ui/GradeGlyph';
 import { Icon } from '@/ui/Icon';
 import './leaflet-overrides.css';
 import styles from './PoleMap.module.css';
@@ -28,7 +27,7 @@ function markerIcon(record: PoleRecord): L.DivIcon {
   if (!icon) {
     icon = L.divIcon({
       className: [styles.marker, fp ? styles.markerFp : ''].filter(Boolean).join(' '),
-      html: `<span class="${styles.markerInner}">${renderToStaticMarkup(<GradeGlyph grade={record.grade} />)}</span>`,
+      html: `<span class="${styles.markerInner}">${gradeGlyphHtml(record.grade)}</span>`,
       iconSize: [44, 44],
       iconAnchor: [22, 22],
     });

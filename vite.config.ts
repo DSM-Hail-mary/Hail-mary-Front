@@ -6,6 +6,8 @@ export default defineConfig({
   // 상대 경로로 빌드해 어떤 정적 서버/하위 경로에 올려도 동작하게 한다 (HashRouter와 짝).
   base: './',
   plugins: [react()],
+  // 지도(Leaflet)·React를 담은 첫 청크가 500kB를 조금 넘는다. 상세·기기 화면은 따로 나뉜다.
+  build: { chunkSizeWarningLimit: 600 },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },

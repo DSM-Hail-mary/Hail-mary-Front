@@ -1,0 +1,170 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.subheader {
+  height: var(--pw-subheader-h);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 var(--pw-page-pad);
+  background: var(--pw-surface);
+  border-bottom: 1px solid var(--pw-border);
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.subtitle,
+.muted {
+  font-size: var(--pw-fs-small);
+  color: var(--pw-text-muted);
+  font-weight: 500;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: var(--pw-page-pad);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 20px;
+  background: var(--pw-surface);
+  border-radius: var(--pw-radius-card);
+  box-shadow: var(--pw-shadow-card);
+}
+
+.tileLabel,
+.tileSub {
+  font-size: var(--pw-fs-small);
+  color: var(--pw-text-muted);
+}
+
+.tileSub {
+  font-size: var(--pw-fs-caption);
+}
+
+.tileWarn {
+  color: var(--pw-danger-text);
+}
+
+.tileValue {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.tileUnit {
+  font-size: var(--pw-fs-card);
+  font-weight: 400;
+  color: var(--pw-text-muted);
+}
+
+.charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.summary {
+  font-size: var(--pw-fs-caption);
+  color: var(--pw-text-muted);
+}
+
+/* GPS 수신 띠 */
+.gps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 18px;
+}
+
+.strip {
+  display: grid;
+  gap: 2px;
+}
+
+.strip > span {
+  height: 40px;
+}
+
+.fix,
+.noFix {
+  display: block;
+  border-radius: 3px;
+}
+
+.fix {
+  background: var(--pw-text);
+}
+
+.noFix {
+  border: 2px solid var(--pw-danger-line);
+  background: repeating-linear-gradient(135deg, var(--pw-surface) 0 3px, var(--pw-danger-hatch) 3px 6px);
+}
+
+.stripAxis {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--pw-fs-axis);
+  color: var(--pw-text-muted);
+}
+
+.legend {
+  display: flex;
+  gap: 20px;
+  font-size: var(--pw-fs-caption);
+  color: var(--pw-text-2);
+}
+
+.legend > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend .fix,
+.legend .noFix {
+  width: 14px;
+  height: 14px;
+}
+
+.gapNote {
+  margin-top: auto;
+  padding-block: 0;
+  min-height: var(--pw-hit);
+}
+
+.gapLink {
+  margin-left: auto;
+  padding: 0 4px;
+  font-size: var(--pw-fs-small);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

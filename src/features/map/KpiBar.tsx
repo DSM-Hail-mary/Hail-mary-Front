@@ -31,7 +31,9 @@ export function KpiBar({
               <GradeGlyph grade={g} size="dot" />
               {GRADE_LABEL[g]}
             </dt>
-            <dd className={`${styles.kpiValue} ${g === 'danger' ? styles.kpiDanger : ''}`}>{value(counts?.[g])}</dd>
+            <dd className={`${styles.kpiValue} ${g === 'danger' && counts?.danger ? styles.kpiDanger : ''}`}>
+              {value(counts?.[g])}
+            </dd>
           </div>
         ))}
       </dl>

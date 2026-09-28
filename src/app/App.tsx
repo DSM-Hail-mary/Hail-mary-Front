@@ -1,16 +1,21 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { createHashRouter, Navigate, Outlet, RouterProvider } from 'react-router';
 import { ApiProvider } from '@/api/ApiProvider';
 import type { PoleWatchApi } from '@/api/PoleWatchApi';
-import { DetailPage } from '@/features/detail/DetailPage';
-import { PolesIndexPage } from '@/features/detail/PolesIndexPage';
-import { DevicePage } from '@/features/device/DevicePage';
 import { MapPage } from '@/features/map/MapPage';
+import { Loading } from '@/ui/EmptyState';
 import styles from './App.module.css';
 import { NavMemoryProvider } from './navMemory';
 import { routes } from './routes';
 import { TopBar } from './TopBar';
+
+// 첫 화면(지도)만 바로 싣고, 상세·기기 화면은 처음 열 때 받는다.
+const DetailPage = lazy(() => import('@/features/detail/DetailPage').then((m) => ({ default: m.DetailPage })));
+const PolesIndexPage = lazy(() =>
+  import('@/features/detail/PolesIndexPage').then((m) => ({ default: m.PolesIndexPage })),
+);
+const DevicePage = lazy(() => import('@/features/device/DevicePage').then((m) => ({ default: m.DevicePage })));
 
 function AppLayout() {
   return (
@@ -18,7 +23,9 @@ function AppLayout() {
       <div className={styles.app}>
         <TopBar />
         <main className={styles.main}>
-          <Outlet />
+          <Suspense fallback={<Loading />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </NavMemoryProvider>

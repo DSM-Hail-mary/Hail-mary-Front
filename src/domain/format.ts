@@ -31,16 +31,6 @@ function parts(input: string | Date): Parts {
   return out as Parts;
 }
 
-const WEEKDAY_KO: Record<string, string> = {
-  Sun: '일',
-  Mon: '월',
-  Tue: '화',
-  Wed: '수',
-  Thu: '목',
-  Fri: '금',
-  Sat: '토',
-};
-
 /** "35.01462, 126.69183" */
 export function formatCoord(pos: LatLng): string {
   return `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}`;
@@ -97,10 +87,6 @@ export function formatDateLabel(date: string): string {
 export function formatDateShort(date: string): string {
   const [y, m, d] = date.split('-').map(Number);
   return `${y}. ${m}. ${d}`;
-}
-
-export function weekdayOf(iso: string): string {
-  return WEEKDAY_KO[parts(iso).weekday] ?? '';
 }
 
 /** 두 시각 사이 분 (반올림). */

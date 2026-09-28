@@ -52,6 +52,11 @@
   box-shadow: var(--pw-shadow-floating);
 }
 
+.alignRight {
+  left: auto;
+  right: 0;
+}
+
 .popover:has(> .footer) {
   padding-bottom: 0;
 }
