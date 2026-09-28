@@ -25,6 +25,12 @@ describe('mapParams', () => {
     ).toBe('grade=none');
   });
 
+  it('전체 기간: date=all 왕복', () => {
+    const p = parseMapParams(new URLSearchParams('date=all'), TODAY);
+    expect(p.date).toBe('all');
+    expect(serializeMapParams(p, TODAY).toString()).toBe('date=all');
+  });
+
   it('잘못된 값은 기본값으로', () => {
     const p = parseMapParams(new URLSearchParams('date=2026-99-99&grade=bad&sort=x&status=removed'), TODAY);
     expect(p.date).toBe(TODAY);

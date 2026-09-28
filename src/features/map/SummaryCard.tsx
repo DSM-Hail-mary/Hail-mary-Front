@@ -1,6 +1,6 @@
 import { useUpdateRecord } from '@/api/queries';
 import { routes } from '@/app/routes';
-import { formatCoord, formatTime } from '@/domain/format';
+import { formatCoord, formatDateTime, formatTime } from '@/domain/format';
 import { GRADE_LABEL, hazardLabel, poleIdLabel } from '@/domain/labels';
 import { canToggleConfirm, isFalsePositive, toggleConfirm } from '@/domain/records';
 import type { PoleRecord } from '@/domain/types';
@@ -11,7 +11,16 @@ import { FalsePositiveTag, StatusPill } from '@/ui/Pills';
 import styles from './SummaryCard.module.css';
 
 /** 지도 오른쪽 위: 선택한 전주 요약 카드 (360px). */
-export function SummaryCard({ record, onClose }: { record: PoleRecord; onClose: () => void }) {
+export function SummaryCard({
+  record,
+  showDate = false,
+  onClose,
+}: {
+  record: PoleRecord;
+  /** 전체 기간 보기에서는 날짜까지 */
+  showDate?: boolean;
+  onClose: () => void;
+}) {
   const update = useUpdateRecord(record.id);
   const confirmable = canToggleConfirm(record.status);
   const confirmed = record.status === 'checked';
@@ -38,7 +47,7 @@ export function SummaryCard({ record, onClose }: { record: PoleRecord; onClose: 
           <dt>위험 유형</dt>
           <dd>{hazardLabel(record.hazard)}</dd>
           <dt>기록 시각</dt>
-          <dd className="mono">{formatTime(record.recordedAt)}</dd>
+          <dd className="mono">{showDate ? formatDateTime(record.recordedAt) : formatTime(record.recordedAt)}</dd>
           <dt>처리 상태</dt>
           <dd>
             <StatusPill status={record.status} />

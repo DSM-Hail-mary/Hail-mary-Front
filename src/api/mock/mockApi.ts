@@ -79,10 +79,10 @@ export function createMockApi(options: MockApiOptions = {}): HailMaryApi {
       return delay(list.sort((a, b) => b.date.localeCompare(a.date)));
     },
     listDrives(date) {
-      return delay(data.drives.filter((d) => d.date === date));
+      return delay(data.drives.filter((d) => date === null || d.date === date));
     },
     listRecords(date) {
-      return delay([...records.values()].filter((r) => recordDate(r) === date));
+      return delay([...records.values()].filter((r) => date === null || recordDate(r) === date));
     },
     getRecord(id) {
       const r = records.get(id);

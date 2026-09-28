@@ -51,7 +51,8 @@ test.describe('A. 지도·목록', () => {
     await openMap(page);
     await page.getByRole('button', { name: /기준 날짜/ }).click();
     const list = page.getByRole('listbox', { name: '기준 날짜' });
-    await expect(list.getByRole('option')).toHaveCount(3);
+    // 전체 기간 + 기록 있는 날짜 3개
+    await expect(list.getByRole('option')).toHaveCount(4);
     await list.getByRole('option', { name: /2026\. 9\. 20/ }).click();
     await expect(page).toHaveURL(/date=2026-09-20/);
     await expect(rows(page)).toHaveCount(10);
@@ -251,5 +252,41 @@ test.describe('A. 지도·목록', () => {
       'true',
     );
     await expect(page.locator('.leaflet-control-attribution')).toContainText('VWorld');
+  });
+
+  test('전체 기간: 모든 날짜 기록을 한 번에, 목록에 날짜 표시, 새로고침 유지', async ({ page }) => {
+    await openMap(page);
+    await page.getByRole('button', { name: /기준 날짜/ }).click();
+    const list = page.getByRole('listbox', { name: '기준 날짜' });
+    await expect(list.getByRole('option').first()).toHaveText(/전체 기간\s*30건/);
+    await list.getByRole('option', { name: /전체 기간/ }).click();
+    await expect(page).toHaveURL(/date=all/);
+    await expect(page.getByRole('button', { name: /기준 날짜/ })).toContainText('전체 기간');
+    await expect(kpi(page)).toHaveText(['29', '5', '7', '17']); // 오탐 1건 제외
+    await expect(rows(page)).toHaveCount(30);
+    await expect(page.getByText('1–30 / 30건')).toBeVisible();
+    // 여러 날짜가 섞이므로 시각 앞에 날짜
+    await expect(rows(page).first()).toContainText('09.13 10:03:10');
+    await expect(rows(page).last()).toContainText('09.27 09:31:02');
+    await page.reload();
+    await expect(rows(page)).toHaveCount(30);
+
+    // CSV도 전체 기간의 위험 전주
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button', { name: '위험 전주 CSV' }).click(),
+    ]);
+    expect(download.suggestedFilename()).toBe('hailmary_all.csv');
+  });
+
+  test('전체 기간에서 상세로 가면 위험 전주 이동도 전체 기간 기준', async ({ page }) => {
+    await openMap(page, `date=all&sel=${rec('3501-12669-N')}`);
+    await expect(summaryCard(page)).toContainText('2026-09-27 09:15:22');
+    await page.getByRole('link', { name: '상세 보기' }).click();
+    await expect(page.getByText('위험 전주 3 / 5')).toBeVisible();
+    await page.getByRole('button', { name: '이전 위험 전주' }).click();
+    await expect(page).toHaveURL(new RegExp(`#/poles/2026-09-20_3502-12672-E`));
+    await page.getByRole('link', { name: '지도', exact: true }).nth(1).click();
+    await expect(page).toHaveURL(/date=all/);
   });
 });

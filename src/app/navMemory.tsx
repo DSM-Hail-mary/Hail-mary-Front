@@ -49,7 +49,9 @@ export function NavMemoryProvider({ children }: { children: ReactNode }) {
     setMemory((prev) => {
       let next = prev;
       if (location.pathname === routes.paths.map) {
-        next = { ...prev, mapSearch: location.search };
+        // 지도에서 고른 전주가 있으면 "상세 검수" 탭은 그 전주를 연다 (예전에 열었던 전주가 아니라)
+        const sel = new URLSearchParams(location.search).get('sel');
+        next = { ...prev, mapSearch: location.search, lastRecordId: sel ?? prev.lastRecordId };
       } else if (location.pathname.startsWith(`${routes.paths.poles}/`)) {
         const id = decodeURIComponent(location.pathname.slice(routes.paths.poles.length + 1));
         if (id) next = { ...prev, lastRecordId: id };

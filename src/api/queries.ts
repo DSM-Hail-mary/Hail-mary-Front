@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { config } from '@/config';
-import { dateOf } from '@/domain/format';
+import { ALL_DATES, dateOf, isAllDates, type DateScope } from '@/domain/format';
 import type { PoleRecord, RecordPatch } from '@/domain/types';
 import { useApi } from './ApiProvider';
 
@@ -9,8 +9,8 @@ import { useApi } from './ApiProvider';
 export const queryKeys = {
   all: ['hailmary'] as const,
   driveDates: () => [...queryKeys.all, 'drive-dates'] as const,
-  drives: (date: string) => [...queryKeys.all, 'drives', date] as const,
-  records: (date: string) => [...queryKeys.all, 'records', date] as const,
+  drives: (date: DateScope) => [...queryKeys.all, 'drives', date] as const,
+  records: (date: DateScope) => [...queryKeys.all, 'records', date] as const,
   record: (id: string) => [...queryKeys.all, 'record', id] as const,
   deviceSession: () => [...queryKeys.all, 'device-session', 'latest'] as const,
   sync: () => ['sync'] as const,
@@ -21,14 +21,20 @@ export function useDriveDates() {
   return useQuery({ queryKey: queryKeys.driveDates(), queryFn: () => api.listDriveDates() });
 }
 
-export function useDrives(date: string) {
+export function useDrives(date: DateScope) {
   const api = useApi();
-  return useQuery({ queryKey: queryKeys.drives(date), queryFn: () => api.listDrives(date) });
+  return useQuery({
+    queryKey: queryKeys.drives(date),
+    queryFn: () => api.listDrives(isAllDates(date) ? null : date),
+  });
 }
 
-export function useRecords(date: string) {
+export function useRecords(date: DateScope) {
   const api = useApi();
-  return useQuery({ queryKey: queryKeys.records(date), queryFn: () => api.listRecords(date) });
+  return useQuery({
+    queryKey: queryKeys.records(date),
+    queryFn: () => api.listRecords(isAllDates(date) ? null : date),
+  });
 }
 
 export function useRecord(id: string | undefined) {
@@ -56,18 +62,21 @@ function findCachedRecord(qc: QueryClient, id: string): PoleRecord | undefined {
   return undefined;
 }
 
+/** 한 기록이 들어 있는 목록 캐시: 그 날짜 목록과 전체 기간 목록. */
+const listKeysOf = (date: string) => [queryKeys.records(date), queryKeys.records(ALL_DATES)];
+
 function writeRecord(qc: QueryClient, record: PoleRecord) {
   qc.setQueryData(queryKeys.record(record.id), record);
-  qc.setQueryData<PoleRecord[]>(queryKeys.records(dateOf(record.recordedAt)), (list) =>
-    list?.map((r) => (r.id === record.id ? record : r)),
-  );
+  for (const key of listKeysOf(dateOf(record.recordedAt))) {
+    qc.setQueryData<PoleRecord[]>(key, (list) => list?.map((r) => (r.id === record.id ? record : r)));
+  }
 }
 
 function patchCachedRecord(qc: QueryClient, id: string, date: string, patch: RecordPatch) {
   qc.setQueryData<PoleRecord>(queryKeys.record(id), (r) => (r ? { ...r, ...patch } : r));
-  qc.setQueryData<PoleRecord[]>(queryKeys.records(date), (list) =>
-    list?.map((r) => (r.id === id ? { ...r, ...patch } : r)),
-  );
+  for (const key of listKeysOf(date)) {
+    qc.setQueryData<PoleRecord[]>(key, (list) => list?.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  }
 }
 
 /**
@@ -86,7 +95,7 @@ export function useUpdateRecord(recordId: string) {
       // 이 기록과 관련된 조회만 멈춘다. 다른 화면의 첫 로딩을 끊지 않도록 범위를 좁힌다.
       await Promise.all([
         qc.cancelQueries({ queryKey: queryKeys.record(record.id), exact: true }),
-        qc.cancelQueries({ queryKey: queryKeys.records(date), exact: true }),
+        ...listKeysOf(date).map((queryKey) => qc.cancelQueries({ queryKey, exact: true })),
       ]);
       const current =
         findCachedRecord(qc, record.id) ?? qc.getQueryData<PoleRecord>(queryKeys.record(record.id)) ?? record;
@@ -102,7 +111,9 @@ export function useUpdateRecord(recordId: string) {
     onSuccess: (saved) => writeRecord(qc, saved),
     onSettled: (_data, _error, { record }) => {
       void qc.invalidateQueries({ queryKey: queryKeys.record(record.id), exact: true });
-      void qc.invalidateQueries({ queryKey: queryKeys.records(dateOf(record.recordedAt)), exact: true });
+      for (const queryKey of listKeysOf(dateOf(record.recordedAt))) {
+        void qc.invalidateQueries({ queryKey, exact: true });
+      }
     },
   });
 }

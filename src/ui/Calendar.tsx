@@ -21,8 +21,10 @@ export function Calendar({
   marked: ReadonlyMap<string, number>;
   onChange: (date: string) => void;
 }) {
-  const [month, setMonth] = useState(monthKey(value));
-  const [focus, setFocus] = useState(value);
+  // 고른 날짜가 없으면(전체 기간) 오늘이 있는 달부터
+  const start = value || today;
+  const [month, setMonth] = useState(monthKey(start));
+  const [focus, setFocus] = useState(start);
   const gridRef = useRef<HTMLDivElement>(null);
   const focusByKey = useRef(false);
 

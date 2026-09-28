@@ -53,13 +53,14 @@ export function createHttpApi(baseUrl: string): HailMaryApi {
       : null,
   });
 
-  const q = (date: string) => `date=${encodeURIComponent(date)}`;
+  // 날짜가 없으면(전체 기간) 쿼리 없이 요청한다
+  const q = (date: string | null) => (date === null ? '' : `?date=${encodeURIComponent(date)}`);
 
   return {
     listDriveDates: () => request(z.array(driveDateSchema), '/api/v1/drives/dates'),
-    listDrives: (date) => request(z.array(driveSchema), `/api/v1/drives?${q(date)}`),
+    listDrives: (date) => request(z.array(driveSchema), `/api/v1/drives${q(date)}`),
     listRecords: async (date) =>
-      (await request(z.array(poleRecordSchema), `/api/v1/records?${q(date)}`)).map(withAbsoluteUrls),
+      (await request(z.array(poleRecordSchema), `/api/v1/records${q(date)}`)).map(withAbsoluteUrls),
     getRecord: async (id) =>
       withAbsoluteUrls(await request(poleRecordSchema, `/api/v1/records/${encodeURIComponent(id)}`)),
     updateRecord: async (id, patch) =>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { config } from '@/config';
 import { downloadCsv, recordsToCsv } from '@/domain/csv';
-import { formatTime } from '@/domain/format';
+import { formatShortDateTime, formatTime } from '@/domain/format';
 import { GRADES, GRADE_LABEL, HAZARD_LABEL, STATUS_LABEL, poleIdLabel } from '@/domain/labels';
 import {
   isFalsePositive,
@@ -53,6 +53,8 @@ interface Props {
   /** 기록이 하나도 없는 날은 필터를 숨기고 날짜만 보여 준다. */
   showFilters: boolean;
   dateLabel: string;
+  /** 전체 기간 보기: 여러 날짜가 섞이므로 시각 앞에 날짜를 붙인다. */
+  showDate?: boolean;
   /** 목록이 비었을 때 보여 줄 내용 (빈 날짜 / 필터 결과 없음). */
   empty: ReactNode;
 }
@@ -71,6 +73,7 @@ export function RecordList({
   onHover,
   showFilters,
   dateLabel,
+  showDate = false,
   empty,
 }: Props) {
   const pageSize = config.listPageSize;
@@ -204,6 +207,7 @@ export function RecordList({
             {view.items.map((r) => (
               <li key={r.id} className={styles.item}>
                 <RecordRow
+                  showDate={showDate}
                   record={r}
                   selected={r.id === selectedId}
                   hovered={r.id === hoveredId}
@@ -242,12 +246,14 @@ function gradeSegmentValue(grades: readonly Grade[]): Grade | 'all' | '' {
 }
 
 function RecordRow({
+  showDate,
   record,
   selected,
   hovered,
   onSelect,
   onHover,
 }: {
+  showDate: boolean;
   record: PoleRecord;
   selected: boolean;
   hovered: boolean;
@@ -277,7 +283,9 @@ function RecordRow({
         </span>
         <span className={styles.meta}>
           <HazardTag hazard={record.hazard} />
-          <span className="mono">{formatTime(record.recordedAt)}</span>
+          <span className="mono">
+            {showDate ? formatShortDateTime(record.recordedAt) : formatTime(record.recordedAt)}
+          </span>
           {!record.position && (
             <span className={styles.noLocation}>
               <Icon name="pinOff" size={12} />

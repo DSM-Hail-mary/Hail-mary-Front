@@ -54,6 +54,16 @@ test.describe('공통 상단 바', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('3502-12672-E');
   });
 
+  test('지도에서 다른 전주를 고르면 상세 검수 탭은 그 전주를 연다', async ({ page }) => {
+    await openMap(page);
+    await page.getByRole('link', { name: '상세 검수' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('3501-12669-N');
+    await page.getByRole('link', { name: '지도', exact: true }).first().click();
+    await rows(page).filter({ hasText: '3502-12672-E' }).click();
+    await page.getByRole('link', { name: '상세 검수' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('3502-12672-E');
+  });
+
   test('상세 탭을 처음 열면 보던 날짜의 첫 위험 전주로 간다', async ({ page }) => {
     await openMap(page);
     await page.getByRole('link', { name: '상세 검수' }).click();

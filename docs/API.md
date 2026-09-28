@@ -12,8 +12,8 @@
 | 메서드 | 경로 | 응답 | 용도 |
 |---|---|---|---|
 | GET | `/api/v1/drives/dates` | `DriveDate[]` (최신순) | 기준 날짜 선택 목록 |
-| GET | `/api/v1/drives?date=YYYY-MM-DD` | `Drive[]` | 지도 주행 경로, 기기 상태 주행 선택 |
-| GET | `/api/v1/records?date=YYYY-MM-DD` | `PoleRecord[]` | 지도 마커·목록·KPI |
+| GET | `/api/v1/drives?date=YYYY-MM-DD` | `Drive[]` | 지도 주행 경로. **`date` 없이 부르면 전체 기간** |
+| GET | `/api/v1/records?date=YYYY-MM-DD` | `PoleRecord[]` | 지도 마커·목록·KPI. **`date` 없이 부르면 전체 기간** (기준 날짜 "전체 기간") |
 | GET | `/api/v1/records/{id}` | `PoleRecord` | 상세 화면 (404 → "기록을 찾을 수 없습니다") |
 | PATCH | `/api/v1/records/{id}` | `PoleRecord` | 처리 상태·판정 검수 변경. 본문 `{ "status"?: ..., "review"?: ... }` |
 | GET | `/api/device/session/latest` | 서버 명세 형식 (아래) | 기기 상태 화면 — 가장 최근 주행 세션. 404면 "기록 없음" |

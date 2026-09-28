@@ -1,11 +1,11 @@
-import { isDateString } from '@/domain/format';
+import { ALL_DATES, isDateString } from '@/domain/format';
 import { GRADES, HAZARDS, STATUS_FLOW } from '@/domain/labels';
 import type { Grade } from '@/domain/types';
 import { DEFAULT_FILTERS, type RecordFilters } from '@/domain/records';
 
 /**
  * 지도·목록 화면 상태는 URL 쿼리에 둔다 (새로고침·공유·뒤로가기에 그대로 남도록).
- *   ?date=2026-09-27&grade=danger,warn&hazard=nest&status=new&sort=priority&sel=<기록 ID>
+ *   ?date=2026-09-27(또는 all = 전체 기간)&grade=danger,warn&hazard=nest&status=new&sort=priority&sel=<기록 ID>
  * grade: 체크한 등급 목록. 전부면 생략, 하나도 없으면 grade=none.
  * 잘못된 값은 조용히 기본값으로 돌린다.
  */
@@ -21,7 +21,7 @@ const pick = <T extends string>(value: string | null, allowed: readonly T[], fal
 export function parseMapParams(search: URLSearchParams, today: string): MapParams {
   const date = search.get('date');
   return {
-    date: date && isDateString(date) ? date : today,
+    date: date === ALL_DATES || (date && isDateString(date)) ? date : today,
     filters: {
       grades: parseGrades(search.get('grade')),
       hazard: pick(search.get('hazard'), ['all', ...HAZARDS], DEFAULT_FILTERS.hazard),

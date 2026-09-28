@@ -7,10 +7,11 @@ import type { DeviceSession, Drive, DriveDate, PoleRecord, RecordPatch, SyncStat
 export interface HailMaryApi {
   /** 기록이 있는 날짜 (최신순). */
   listDriveDates(): Promise<DriveDate[]>;
-  /** 해당 날짜의 주행들 (시작 시각순). */
-  listDrives(date: string): Promise<Drive[]>;
+  /** 해당 날짜의 주행들 (시작 시각순). date가 null이면 전체 기간. */
+  listDrives(date: string | null): Promise<Drive[]>;
   /** 해당 날짜의 기록 전체. */
-  listRecords(date: string): Promise<PoleRecord[]>;
+  /** date가 null이면 전체 기간 (모든 날짜). */
+  listRecords(date: string | null): Promise<PoleRecord[]>;
   getRecord(id: string): Promise<PoleRecord>;
   updateRecord(id: string, patch: RecordPatch): Promise<PoleRecord>;
   /** 가장 최근 주행 세션의 기기 상태. 기록이 없으면(서버 404) null. */

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDriveDates, useDrives, useRecords } from '@/api/queries';
-import { formatDateLabel } from '@/domain/format';
+import { formatDateLabel, isAllDates } from '@/domain/format';
 import { GRADES, GRADE_LABEL, HAZARD_LABEL, STATUS_LABEL } from '@/domain/labels';
 import { applyFilters, countByGrade, exportableRecords, type RecordFilters } from '@/domain/records';
 import { Button } from '@/ui/Button';
@@ -41,7 +41,8 @@ export function MapPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [selectedId, select]);
 
-  const latestOtherDate = driveDates?.find((d) => d.recordCount > 0 && d.date !== date)?.date;
+  const allDates = isAllDates(date);
+  const latestOtherDate = allDates ? undefined : driveDates?.find((d) => d.recordCount > 0 && d.date !== date)?.date;
 
   let empty;
   if (recordsQuery.isPending) {
@@ -63,7 +64,9 @@ export function MapPage() {
         title="기록된 전주가 없습니다"
         action={latestOtherDate && <Button onClick={() => setDate(latestOtherDate)}>최근 기록 날짜로 이동</Button>}
       >
-        차량이 복귀해 Wi-Fi에 연결되면 그날 기록이 자동으로 들어옵니다. 다른 날짜를 보려면 상단의 기준 날짜를 바꾸세요.
+        {allDates
+          ? '아직 동기화된 기록이 하나도 없습니다. 차량이 복귀해 Wi-Fi에 연결되면 기록이 들어옵니다.'
+          : '차량이 복귀해 Wi-Fi에 연결되면 그날 기록이 자동으로 들어옵니다. 다른 날짜를 보려면 상단의 기준 날짜를 바꾸세요.'}
       </EmptyState>
     );
   } else if (filters.grades.length === 0) {
@@ -104,7 +107,9 @@ export function MapPage() {
           onSelect={select}
           onHover={setHoveredId}
         >
-          {selected && <SummaryCard key={selected.id} record={selected} onClose={() => select(null)} />}
+          {selected && (
+            <SummaryCard key={selected.id} record={selected} showDate={allDates} onClose={() => select(null)} />
+          )}
         </PoleMap>
         <RecordList
           date={date}
@@ -119,6 +124,7 @@ export function MapPage() {
           onHover={setHoveredId}
           showFilters={all.length > 0}
           dateLabel={formatDateLabel(date)}
+          showDate={allDates}
           empty={empty}
         />
       </div>

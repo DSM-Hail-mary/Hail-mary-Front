@@ -36,6 +36,12 @@ export function formatCoord(pos: LatLng): string {
   return `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}`;
 }
 
+/** 목록용 짧은 날짜+시각: "09.27 09:15:22" */
+export function formatShortDateTime(iso: string): string {
+  const p = parts(iso);
+  return `${p.month}.${p.day} ${p.hour}:${p.minute}:${p.second}`;
+}
+
 /** "09:15:22" */
 export function formatTime(iso: string): string {
   const p = parts(iso);
@@ -74,8 +80,15 @@ export function isDateString(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
 }
 
-/** "2026-09-27" → "2026. 9. 27 (일)" */
+/** 날짜 대신 모든 기록을 볼 때의 값 (URL date=all). */
+export const ALL_DATES = 'all';
+export type DateScope = string; // 'YYYY-MM-DD' 또는 ALL_DATES
+
+export const isAllDates = (scope: DateScope) => scope === ALL_DATES;
+
+/** "2026-09-27" → "2026. 9. 27 (일)", 전체 기간이면 "전체 기간" */
 export function formatDateLabel(date: string): string {
+  if (isAllDates(date)) return '전체 기간';
   const [y, m, d] = date.split('-').map(Number);
   // 날짜만 있는 값이라 UTC 정오로 만들어 시간대 경계 문제를 피한다.
   const weekday = new Date(Date.UTC(y ?? 0, (m ?? 1) - 1, d ?? 1, 12)).getUTCDay();

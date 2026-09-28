@@ -4,7 +4,7 @@ import { isNotFound } from '@/api/HailMaryApi';
 import { useRecord, useRecords } from '@/api/queries';
 import { useNavMemory } from '@/app/navMemory';
 import { routes } from '@/app/routes';
-import { dateOf } from '@/domain/format';
+import { ALL_DATES, dateOf, isAllDates } from '@/domain/format';
 import { GRADE_LABEL, poleIdLabel } from '@/domain/labels';
 import { dangerQueuePosition, isFalsePositive } from '@/domain/records';
 import type { PoleRecord } from '@/domain/types';
@@ -46,8 +46,10 @@ export function DetailPage() {
 function Detail({ record }: { record: PoleRecord }) {
   const navigate = useNavigate();
   const date = dateOf(record.recordedAt);
-  const { data: sameDay } = useRecords(date);
-  const { seedMap } = useNavMemory();
+  const { seedMap, mapDate } = useNavMemory();
+  // 지도에서 전체 기간을 보고 있었으면 위험 전주 이동·돌아가기도 전체 기간으로
+  const scope = mapDate && isAllDates(mapDate) ? ALL_DATES : date;
+  const { data: sameDay } = useRecords(scope);
   useEffect(() => seedMap(date, record.id), [seedMap, date, record.id]);
   const queue = useMemo(() => (sameDay ? dangerQueuePosition(sameDay, record.id) : null), [sameDay, record.id]);
 
@@ -66,7 +68,7 @@ function Detail({ record }: { record: PoleRecord }) {
   return (
     <div className={styles.page}>
       <div className={styles.subheader}>
-        <ButtonLink variant="quiet" to={routes.map({ date, sel: record.id })}>
+        <ButtonLink variant="quiet" to={routes.map({ date: scope, sel: record.id })}>
           <Icon name="chevronLeft" />
           지도
         </ButtonLink>
