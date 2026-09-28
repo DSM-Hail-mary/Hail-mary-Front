@@ -1,0 +1,21 @@
+/* Leaflet 기본 스타일을 다크 테마에 맞춘다 (전역). */
+
+.leaflet-container {
+  background: var(--pw-map-bg);
+  font-family: var(--pw-font-sans);
+}
+
+.leaflet-container .leaflet-control-attribution {
+  background: rgba(10, 10, 10, 0.7);
+  color: var(--pw-text-muted);
+  font-size: 10px;
+}
+
+.leaflet-container .leaflet-control-attribution a {
+  color: var(--pw-text-2);
+}
+
+.leaflet-marker-icon:focus-visible {
+  outline: none;
+  box-shadow: var(--pw-focus-ring);
+}

@@ -1,0 +1,157 @@
+.root {
+  position: relative;
+  flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--pw-map-bg);
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+}
+
+/* 밝은 타일 → 무채색 다크 (새 색상을 들이지 않도록 흑백으로) */
+.darkTiles {
+  filter: grayscale(1) invert(1) brightness(0.5) contrast(1.1);
+}
+
+/* 벡터 레이어 색: SVG 속성 대신 CSS로 토큰을 적용한다 */
+.route {
+  stroke: var(--pw-map-route);
+}
+
+.routeCasing {
+  stroke: var(--pw-map-route-casing);
+}
+
+.unscanned {
+  stroke: var(--pw-map-unscanned);
+}
+
+.startPin {
+  stroke: var(--pw-brand);
+  fill: var(--pw-bg-page);
+}
+
+.endPin {
+  stroke: var(--pw-bg-page);
+  fill: var(--pw-brand);
+}
+
+/* 마커: 44×44 투명 버튼 가운데 글리프 */
+.marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.markerInner {
+  display: flex;
+  transition: transform 0.15s;
+}
+
+.markerInner > span {
+  box-shadow:
+    0 0 0 2px var(--pw-bg-page),
+    0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.markerSelected .markerInner {
+  transform: scale(1.4);
+}
+
+.markerSelected .markerInner > span {
+  box-shadow: var(--pw-ring-selected);
+}
+
+/* 오탐: 흐리게 + 점선 테두리로 구분 */
+.markerFp .markerInner {
+  opacity: 0.45;
+}
+
+.markerSelected.markerFp .markerInner {
+  opacity: 0.8;
+}
+
+.pinLabel {
+  padding: 3px 8px;
+  border: none;
+  border-radius: var(--pw-radius-pill);
+  background: var(--pw-text);
+  color: var(--pw-text-on-light);
+  font-family: var(--pw-font-sans);
+  font-size: var(--pw-fs-caption);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.pinLabel::before {
+  display: none;
+}
+
+/* 지도 위 떠 있는 요소 공통 */
+.floating {
+  position: absolute;
+  z-index: 500;
+  background: var(--pw-surface);
+  border-radius: var(--pw-radius-float);
+  box-shadow: var(--pw-shadow-floating-sm);
+}
+
+.zoom {
+  right: 20px;
+  bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.zoom button {
+  width: var(--pw-hit);
+  height: var(--pw-hit);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--pw-surface);
+  color: var(--pw-text);
+}
+
+.zoom button:hover {
+  background: #242424;
+}
+
+.zoomDivider {
+  height: 1px;
+  background: var(--pw-track);
+}
+
+.legend {
+  left: 20px;
+  bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: var(--pw-fs-caption);
+}
+
+.legendRow {
+  display: flex;
+  gap: 16px;
+}
+
+.legendRow:first-child {
+  gap: 20px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

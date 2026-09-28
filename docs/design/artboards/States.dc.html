@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>PoleWatch 빈 상태·예외</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;color-scheme:dark;font-family:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:#0A0A0A;color:#EDEDEA}
+a{color:#EDEDEA}a:hover{color:#EDEDEA}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 1440px; height: 660px; box-sizing: border-box; padding: 32px 30px; background: #0A0A0A; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px; align-items: start">
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 13px; font-weight: 600; color: #C4C4C0">동기화 완료 · 해당 날짜 기록 없음</span>
+<div style="height: 64px; background: #141414; border-radius: 10px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 0 20px; color: #F3F2EE; font-size: 13px">
+<span style="display: flex; align-items: center; gap: 8px; font-weight: 600"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#FFD21F"></circle><path d="M4.5 8.2l2.3 2.3 4.7-4.8" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>동기화 완료</span>
+<span style="width: 1px; height: 16px; background: #3A3A3A"></span>
+<span style="color: #B3B3B3">마지막 동기화 <span style="font-family: 'IBM Plex Mono', monospace; color: #E6E6E6">09.26 18:10</span></span>
+</div>
+<section aria-label="전주 목록" style="height: 480px; background: #1C1C1C; border-radius: 10px; box-shadow: 0 0 0 1px #2E2E2E; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 16px 20px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #262626">
+<h2 style="margin: 0; font-size: 17px; font-weight: 700">전주 목록</h2>
+<span style="font-size: 14px; color: #A3A3A0">0건</span>
+<div style="flex-grow: 1"></div>
+<span style="font-size: 13px; color: #A3A3A0">2026. 9. 27 (일)</span>
+</div>
+<div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 0 40px; text-align: center">
+<svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="27" fill="#262626"></circle><rect x="26" y="14" width="4" height="28" fill="#6A6A6A"></rect><rect x="17" y="18" width="22" height="3.5" rx="1" fill="#6A6A6A"></rect><path d="M14 44h28" stroke="#6A6A6A" stroke-width="2" stroke-dasharray="3 3"></path></svg>
+<p style="margin: 0; font-size: 16px; font-weight: 700">기록된 전주가 없습니다</p>
+<p style="margin: 0; font-size: 13px; line-height: 1.6; color: #A3A3A0">차량이 복귀해 Wi-Fi에 연결되면 그날 기록이 자동으로 들어옵니다. 다른 날짜를 보려면 상단의 기준 날짜를 바꾸세요.</p>
+<button type="button" style="height: 44px; margin-top: 4px; padding: 0 16px; border: 1px solid #3D3D3D; border-radius: 8px; background: #1C1C1C; font-size: 14px; font-weight: 600; color: #EDEDEA; cursor: pointer">최근 기록 날짜로 이동</button>
+</div>
+</section>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 13px; font-weight: 600; color: #C4C4C0">동기화 진행 중 · 필터 결과 없음</span>
+<div style="height: 64px; background: #141414; border-radius: 10px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 0 20px; color: #F3F2EE; font-size: 13px">
+<span style="display: flex; align-items: center; gap: 8px; font-weight: 600"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#3A3A3A" stroke-width="2"></circle><path d="M8 1.5a6.5 6.5 0 016.5 6.5" fill="none" stroke="#FFD21F" stroke-width="2" stroke-linecap="round"></path></svg>동기화 중</span>
+<span style="display: flex; align-items: center; gap: 8px; color: #B3B3B3">이미지 <span style="font-family: 'IBM Plex Mono', monospace; color: #E6E6E6">212 / 340</span>
+<span style="width: 72px; height: 4px; border-radius: 2px; background: #3A3A3A; display: block; position: relative; overflow: hidden"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 62%; background: #FFD21F"></span></span></span>
+</div>
+<section aria-label="전주 목록" style="height: 480px; background: #1C1C1C; border-radius: 10px; box-shadow: 0 0 0 1px #2E2E2E; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 16px 20px 12px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid #262626">
+<div style="display: flex; align-items: center; gap: 8px"><h2 style="margin: 0; font-size: 17px; font-weight: 700">전주 목록</h2><span style="font-size: 14px; color: #A3A3A0">0건</span></div>
+<div role="group" aria-label="등급 필터" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #111111; border-radius: 10px">
+<button type="button" aria-pressed="false" style="height: 40px; border: none; border-radius: 7px; background: transparent; font-size: 14px; color: #C4C4C0">전체 13</button>
+<button type="button" aria-pressed="true" style="height: 40px; border: none; border-radius: 7px; background: #333333; color: #EDEDEA; font-size: 14px; font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,0.18)">위험 3</button>
+<button type="button" aria-pressed="false" style="height: 40px; border: none; border-radius: 7px; background: transparent; font-size: 14px; color: #C4C4C0">주의 4</button>
+<button type="button" aria-pressed="false" style="height: 40px; border: none; border-radius: 7px; background: transparent; font-size: 14px; color: #C4C4C0">양호 6</button>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<span style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 4px 0 10px; border-radius: 16px; background: #2B2616; font-size: 13px; color: #EDEDEA">처리 상태: 철거 완료<button type="button" aria-label="처리 상태 필터 해제" style="width: 28px; height: 28px; border: none; border-radius: 50%; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2l6 6M8 2L2 8" stroke="#EDEDEA" stroke-width="1.6" stroke-linecap="round"></path></svg></button></span>
+</div>
+</div>
+<div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 0 40px; text-align: center">
+<svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="27" fill="#262626"></circle><path d="M16 18h24l-9 11v9l-6 3V29z" fill="none" stroke="#6A6A6A" stroke-width="2.2" stroke-linejoin="round"></path></svg>
+<p style="margin: 0; font-size: 16px; font-weight: 700">조건에 맞는 전주가 없습니다</p>
+<p style="margin: 0; font-size: 13px; line-height: 1.6; color: #A3A3A0">위험 · 철거 완료 조합에 해당하는 기록이 없습니다.</p>
+<button type="button" style="height: 44px; margin-top: 4px; padding: 0 16px; border: none; border-radius: 8px; background: #EDEDEA; font-size: 14px; font-weight: 600; color: #141414; cursor: pointer">필터 초기화</button>
+</div>
+</section>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 13px; font-weight: 600; color: #C4C4C0">동기화 실패 · 위치 없는 기록</span>
+<div style="height: 64px; background: #141414; border-radius: 10px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 0 12px 0 20px; color: #F3F2EE; font-size: 13px">
+<span style="display: flex; align-items: center; gap: 8px; font-weight: 600"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5L15 14H1z" fill="#FF6B5E"></path><path d="M8 6v3.5" stroke="#141414" stroke-width="1.8" stroke-linecap="round"></path><circle cx="8" cy="11.6" r="1" fill="#141414"></circle></svg>동기화 실패</span>
+<span style="color: #B3B3B3">Wi-Fi 연결 끊김</span>
+<button type="button" style="height: 44px; padding: 0 14px; border: 1px solid #5A5A5A; border-radius: 8px; background: transparent; color: #FFFFFF; font-size: 13px; font-weight: 600; cursor: pointer">다시 시도</button>
+</div>
+<section aria-label="전주 목록" style="height: 480px; background: #1C1C1C; border-radius: 10px; box-shadow: 0 0 0 1px #2E2E2E; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 16px 20px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #262626"><h2 style="margin: 0; font-size: 17px; font-weight: 700">전주 목록</h2><span style="font-size: 14px; color: #A3A3A0">13건</span></div>
+<ol style="list-style: none; margin: 0; padding: 0">
+<li style="border-bottom: 1px solid #262626"><button type="button" style="width: 100%; min-height: 64px; border: none; background: #1C1C1C; display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px; padding: 10px 20px; text-align: left">
+<span style="display: flex; justify-content: center"><span style="width: 24px; height: 24px; box-sizing: border-box; border: 2px solid #9A9A96; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #9A9A96">양</span></span>
+<span style="display: flex; flex-direction: column; gap: 5px"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500">3502-12677-E</span><span style="display: flex; gap: 8px; font-size: 12px; color: #A3A3A0"><span>이상 없음</span><span style="font-family: 'IBM Plex Mono', monospace">09:29:40</span></span></span>
+<span style="font-size: 12px; font-weight: 600; color: #A3A3A0">해당 없음</span>
+</button></li>
+<li style="border-bottom: 1px solid #262626"><button type="button" aria-pressed="true" style="width: 100%; min-height: 64px; border: none; background: #2B2616; box-shadow: inset 0 0 0 2px #FFD21F; display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px; padding: 10px 20px; text-align: left">
+<span style="display: flex; justify-content: center"><span style="width: 26px; height: 26px; background: #EDEDEA; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #141414">주</span></span>
+<span style="display: flex; flex-direction: column; gap: 5px"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500; color: #A3A3A0">ID 미할당</span><span style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #A3A3A0"><span style="padding: 1px 6px; border-radius: 4px; box-shadow: inset 0 0 0 1px #4A4A4A; color: #EDEDEA">까치집</span><span style="font-family: 'IBM Plex Mono', monospace">09:31:02</span><span style="display: flex; align-items: center; gap: 4px; color: #EDEDEA; font-weight: 600"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 11s4-3.6 4-6.4A4 4 0 002 4.6C2 7.4 6 11 6 11z" fill="none" stroke="#EDEDEA" stroke-width="1.3"></path><path d="M1.5 1.5l9 9" stroke="#EDEDEA" stroke-width="1.3"></path></svg>위치 없음</span></span></span>
+<span style="padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: #EDEDEA; color: #141414">신규</span>
+</button></li>
+</ol>
+<div style="margin: 16px 20px 0; padding: 14px 16px; border-radius: 8px; background: #111111; display: flex; gap: 12px; align-items: flex-start">
+<svg width="18" height="18" viewBox="0 0 18 18" style="flex-shrink: 0; margin-top: 1px" aria-hidden="true"><circle cx="9" cy="9" r="7.5" fill="none" stroke="#EDEDEA" stroke-width="1.5"></circle><path d="M9 8v5" stroke="#EDEDEA" stroke-width="1.6" stroke-linecap="round"></path><circle cx="9" cy="5.4" r="1" fill="#EDEDEA"></circle></svg>
+<p style="margin: 0; font-size: 13px; line-height: 1.6">GPS 신호를 받지 못한 기록이라 지도에는 표시되지 않습니다. 상세 화면에서 크롭 이미지로 판정은 할 수 있습니다.</p>
+</div>
+<div style="flex-grow: 1"></div>
+<div style="padding: 14px 20px; border-top: 1px solid #262626; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #A3A3A0">
+<span>1–50 / 13건</span>
+<div style="flex-grow: 1"></div>
+<button type="button" aria-label="이전 페이지" disabled style="width: 44px; height: 44px; border: 1px solid #2E2E2E; border-radius: 8px; background: #111111; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M9 3L5 7l4 4" fill="none" stroke="#6A6A6A" stroke-width="1.6" stroke-linecap="round"></path></svg></button>
+<button type="button" aria-label="다음 페이지" disabled style="width: 44px; height: 44px; border: 1px solid #2E2E2E; border-radius: 8px; background: #111111; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M5 3l4 4-4 4" fill="none" stroke="#6A6A6A" stroke-width="1.6" stroke-linecap="round"></path></svg></button>
+</div>
+</section>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":660}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

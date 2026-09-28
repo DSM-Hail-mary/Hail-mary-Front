@@ -1,0 +1,45 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px 20px;
+  background: var(--pw-surface);
+  border-radius: var(--pw-radius-card);
+  box-shadow: var(--pw-shadow-card);
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-height: 22px;
+}
+
+.title {
+  font-size: var(--pw-fs-card);
+  font-weight: 700;
+}
+
+.aside {
+  font-size: var(--pw-fs-small);
+  color: var(--pw-text-muted);
+}
+
+.actions {
+  margin-left: auto;
+  align-self: center;
+  display: flex;
+  gap: 8px;
+  margin-block: -12px;
+}
+
+.inset {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--pw-radius-control);
+  background: var(--pw-bg-page);
+  font-size: var(--pw-fs-small);
+}

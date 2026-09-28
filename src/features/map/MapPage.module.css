@@ -1,0 +1,82 @@
+.page {
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.body {
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+}
+
+/* KPI 줄 */
+.kpiBar {
+  height: var(--pw-kpi-h);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 0 var(--pw-page-pad);
+  background: var(--pw-surface);
+  border-bottom: 1px solid var(--pw-border);
+}
+
+.kpiDivider {
+  width: 1px;
+  height: 48px;
+  background: var(--pw-border);
+}
+
+.kpis {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kpiLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--pw-fs-small);
+  color: var(--pw-text-muted);
+}
+
+.kpiValue {
+  font-size: var(--pw-fs-kpi);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.kpiDanger {
+  color: var(--pw-danger-line);
+}
+
+/* 날짜 직접 선택 */
+.dateInputRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: var(--pw-fs-small);
+  color: var(--pw-text-muted);
+}
+
+.dateInput {
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--pw-control-border);
+  border-radius: var(--pw-radius-control);
+  background: var(--pw-bg-page);
+  color-scheme: dark;
+  font-family: var(--pw-font-mono);
+  font-size: var(--pw-fs-small);
+}

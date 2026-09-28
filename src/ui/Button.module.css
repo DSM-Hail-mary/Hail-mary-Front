@@ -1,0 +1,84 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: var(--pw-hit);
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--pw-radius-control);
+  font-size: var(--pw-fs-body);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.12s,
+    border-color 0.12s;
+}
+
+.primary {
+  background: var(--pw-brand);
+  color: var(--pw-text-on-light);
+  font-weight: 700;
+}
+
+.primary:hover {
+  background: #ffdb4d;
+}
+
+.secondary {
+  background: var(--pw-surface);
+  border-color: var(--pw-control-border);
+  color: var(--pw-text);
+}
+
+.secondary:hover:not(:disabled) {
+  background: #242424;
+}
+
+.secondary:disabled {
+  background: var(--pw-bg-page);
+  border-color: var(--pw-border);
+  color: var(--pw-text-disabled);
+}
+
+.inverse {
+  background: var(--pw-text);
+  color: var(--pw-text-on-light);
+}
+
+.inverse:hover {
+  background: #ffffff;
+}
+
+.ghost {
+  background: transparent;
+  color: var(--pw-text);
+  padding: 0 12px;
+}
+
+.ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ghost:disabled {
+  color: var(--pw-text-disabled);
+}
+
+/* 보조 텍스트 색의 링크형 (← 지도·목록) */
+.quiet {
+  background: transparent;
+  color: var(--pw-text-2);
+  font-weight: 500;
+  padding: 0 12px;
+}
+
+.quiet:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--pw-text);
+}
+
+.iconOnly {
+  width: var(--pw-hit);
+  padding: 0;
+}

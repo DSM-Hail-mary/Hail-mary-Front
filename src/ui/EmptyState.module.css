@@ -1,0 +1,56 @@
+.root {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 40px;
+  text-align: center;
+}
+
+.icon {
+  color: var(--pw-text-disabled);
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.body {
+  max-width: 360px;
+  font-size: var(--pw-fs-small);
+  line-height: 1.6;
+  color: var(--pw-text-muted);
+}
+
+.action {
+  margin-top: 4px;
+}
+
+.loading {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px;
+  font-size: var(--pw-fs-small);
+  color: var(--pw-text-muted);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--pw-topbar-divider);
+  border-top-color: var(--pw-brand);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

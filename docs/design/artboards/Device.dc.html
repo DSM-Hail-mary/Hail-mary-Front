@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>PoleWatch 기기 상태</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;color-scheme:dark;font-family:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:#111111;color:#EDEDEA}
+a{color:#EDEDEA}a:hover{color:#FFFFFF}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: #111111; overflow: hidden">
+
+<header style="height: 64px; flex-shrink: 0; background: #0A0A0A; border-bottom: 1px solid #262626; box-sizing: border-box; display: flex; align-items: center; gap: 40px; padding: 0 24px; color: #F3F2EE">
+<div style="display: flex; align-items: center; gap: 10px">
+<svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="7" fill="#FFD21F"></rect><rect x="13.5" y="6" width="3" height="19" fill="#141414"></rect><rect x="7" y="9" width="16" height="2.6" rx="1" fill="#141414"></rect><circle cx="22" cy="21" r="4" fill="none" stroke="#141414" stroke-width="2"></circle></svg>
+<span style="font-size: 18px; font-weight: 700; letter-spacing: -0.01em">PoleWatch</span>
+</div>
+<nav aria-label="화면" style="display: flex; align-items: stretch; gap: 4px; height: 64px">
+<a href="Main.dc.html" style="display: flex; align-items: center; padding: 0 16px; font-size: 14px; font-weight: 500; color: #B3B3B3; text-decoration: none">지도·목록</a>
+<a href="Detail.dc.html" style="display: flex; align-items: center; padding: 0 16px; font-size: 14px; font-weight: 500; color: #B3B3B3; text-decoration: none">전주 상세·검수</a>
+<a href="Device.dc.html" aria-current="page" style="display: flex; align-items: center; padding: 0 16px; padding-top: 3px; font-size: 14px; font-weight: 600; color: #FFFFFF; text-decoration: none; border-bottom: 3px solid #FFD21F; box-sizing: border-box">기기 상태</a>
+</nav>
+<div style="flex-grow: 1"></div>
+<div role="status" style="display: flex; align-items: center; gap: 12px; font-size: 13px">
+<span style="display: flex; align-items: center; gap: 8px; font-weight: 600"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#FFD21F"></circle><path d="M4.5 8.2l2.3 2.3 4.7-4.8" fill="none" stroke="#141414" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>동기화 완료</span>
+<span style="width: 1px; height: 16px; background: #3A3A3A"></span>
+<span style="color: #B3B3B3">마지막 동기화 <span style="font-family: 'IBM Plex Mono', monospace; color: #E6E6E6">09.27 18:42</span></span>
+</div>
+</header>
+
+<div style="height: 76px; flex-shrink: 0; background: #1C1C1C; border-bottom: 1px solid #2E2E2E; display: flex; align-items: center; gap: 24px; padding: 0 24px; box-sizing: border-box">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h1 style="margin: 0; font-size: 20px; font-weight: 700">Jetson Nano · 차량 [번호]</h1>
+<span style="font-size: 13px; color: #A3A3A0">주행 중 기록된 기기 로그 · 벤치마크 확인용</span>
+</div>
+<div style="flex-grow: 1"></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<label for="run" style="font-size: 12px; color: #A3A3A0">주행 기록</label>
+<button id="run" type="button" style="height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 14px; border: 1px solid #3D3D3D; border-radius: 8px; background: #1C1C1C; font-size: 14px; font-weight: 600; color: #EDEDEA; cursor: pointer">2026. 9. 27 <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 500">09:11–09:32</span><span style="color: #A3A3A0; font-weight: 500">21분</span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="#A3A3A0" stroke-width="1.5"></path></svg></button>
+</div>
+</div>
+
+<div style="flex-grow: 1; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box">
+
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+<sc-for list="{{tiles}}" as="t" hint-placeholder-count="4">
+<div style="background: #1C1C1C; border-radius: 12px; box-shadow: 0 0 0 1px #2E2E2E; padding: 16px 20px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 13px; color: #A3A3A0">{{t.label}}</span>
+<span style="display: flex; align-items: baseline; gap: 4px"><span style="font-size: 32px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.15">{{t.value}}</span><span style="font-size: 15px; color: #A3A3A0">{{t.unit}}</span></span>
+<span style="font-size: 12px; color: #A3A3A0">{{t.sub}}</span>
+</div>
+</sc-for>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<sc-for list="{{charts}}" as="ch" hint-placeholder-count="3">
+<section style="background: #1C1C1C; border-radius: 12px; box-shadow: 0 0 0 1px #2E2E2E; padding: 16px 20px 12px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: baseline; gap: 8px">
+<h2 style="margin: 0; font-size: 15px; font-weight: 700">{{ch.title}}</h2>
+<span style="font-size: 12px; color: #A3A3A0">{{ch.unitLabel}}</span>
+<div style="flex-grow: 1"></div>
+<span style="font-size: 12px; color: #A3A3A0">{{ch.summary}}</span>
+</div>
+<div onMouseLeave="{{clearHover}}" style="position: relative; width: 640px; height: 200px">
+<svg width="640" height="200" viewBox="0 0 640 200" role="img" aria-label="{{ch.aria}}" font-family="IBM Plex Sans KR, sans-serif">
+<path d="{{ch.gridD}}" stroke="#2A2A2A" stroke-width="1" fill="none"></path>
+<path d="M44 176.5H632" stroke="#4A4A4A" stroke-width="1"></path>
+<text x="36" y="{{ch.t0y}}" text-anchor="end" font-size="11" fill="#A3A3A0">{{ch.t0}}</text>
+<text x="36" y="{{ch.t1y}}" text-anchor="end" font-size="11" fill="#A3A3A0">{{ch.t1}}</text>
+<text x="36" y="{{ch.t2y}}" text-anchor="end" font-size="11" fill="#A3A3A0">{{ch.t2}}</text>
+<path d="{{ch.thrD}}" stroke="#FF6B5E" stroke-width="1.5" stroke-dasharray="5 4" fill="none"></path>
+<text x="630" y="{{ch.thrTy}}" text-anchor="end" font-size="11" fill="#A3A3A0">{{ch.thrLabel}}</text>
+<path d="{{ch.barD}}" fill="#EDEDEA"></path>
+<polyline points="{{ch.points}}" fill="none" stroke="#EDEDEA" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>
+<line x1="{{ch.hx}}" x2="{{ch.hx}}" y1="12" y2="176" stroke="#6A6A6A" stroke-width="1" opacity="{{ch.hOp}}"></line>
+<circle cx="{{ch.hx}}" cy="{{ch.hy}}" r="5" fill="#FFD21F" stroke="#141414" stroke-width="2" opacity="{{ch.dotOp}}"></circle>
+<text x="57.4" y="194" text-anchor="middle" font-size="11" fill="#A3A3A0">09:11</text>
+<text x="191" y="194" text-anchor="middle" font-size="11" fill="#A3A3A0">09:16</text>
+<text x="324.7" y="194" text-anchor="middle" font-size="11" fill="#A3A3A0">09:21</text>
+<text x="458.4" y="194" text-anchor="middle" font-size="11" fill="#A3A3A0">09:26</text>
+<text x="618.7" y="194" text-anchor="middle" font-size="11" fill="#A3A3A0">09:32</text>
+</svg>
+<div style="position: absolute; left: 44px; top: 0; width: 588px; height: 180px; display: grid; grid-template-columns: repeat(22, minmax(0, 1fr))">
+<sc-for list="{{ch.cols}}" as="c" hint-placeholder-count="22">
+<span onMouseEnter="{{c.enter}}" style="display: block; height: 100%"></span>
+</sc-for>
+</div>
+<sc-if value="{{ch.hasHover}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; top: 4px; width: 112px; padding: 6px 10px; background: #EDEDEA; color: #141414; border-radius: 6px; font-size: 12px; display: flex; justify-content: space-between; pointer-events: none; left: {{ch.tipX}}px"><span style="font-family: 'IBM Plex Mono', monospace; color: #5E5E5E">{{ch.tipTime}}</span><span style="font-weight: 700">{{ch.tipVal}}</span></div>
+</sc-if>
+</div>
+</section>
+</sc-for>
+
+<section style="background: #1C1C1C; border-radius: 12px; box-shadow: 0 0 0 1px #2E2E2E; padding: 16px 20px 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: baseline; gap: 8px">
+<h2 style="margin: 0; font-size: 15px; font-weight: 700">GPS 수신 상태</h2>
+<span style="font-size: 12px; color: #A3A3A0">분 단위</span>
+<div style="flex-grow: 1"></div>
+<span style="font-size: 12px; color: #A3A3A0">미수신 구간의 기록은 지도에 표시되지 않음</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding-top: 18px">
+<div role="img" aria-label="09:11부터 09:32까지 GPS 수신, 09:31 한 구간 미수신" style="display: grid; grid-template-columns: repeat(22, minmax(0, 1fr)); gap: 2px">
+<sc-for list="{{gps}}" as="g" hint-placeholder-count="22">
+<span style="display: block; height: 40px; border-radius: 3px; box-sizing: border-box; {{g.style}}"></span>
+</sc-for>
+</div>
+<div style="display: flex; justify-content: space-between; font-size: 11px; color: #A3A3A0"><span>09:11</span><span>09:16</span><span>09:21</span><span>09:26</span><span>09:32</span></div>
+</div>
+<div style="display: flex; gap: 20px; font-size: 12px; color: #C4C4C0">
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 14px; border-radius: 3px; background: #EDEDEA"></span>수신</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 14px; border-radius: 3px; box-sizing: border-box; border: 2px solid #FF6B5E; background: repeating-linear-gradient(135deg, #1C1C1C 0 3px, #4A1A17 3px 6px)"></span>미수신</span>
+</div>
+<div style="margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; background: #111111; font-size: 13px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-weight: 500">09:31</span>
+<span>미수신 1분 · 이 구간 기록 1건이 "위치 없음"으로 들어옴</span>
+<div style="flex-grow: 1"></div>
+<a href="Main.dc.html" style="height: 44px; display: flex; align-items: center; padding: 0 4px; font-size: 13px; font-weight: 600">목록에서 보기</a>
+</div>
+</section>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { h: null };
+  }
+  renderVals() {
+    const s = this.state;
+    const temp = [48, 52, 55, 58, 60, 62, 63, 65, 66, 67, 68, 69, 70, 70, 71, 72, 72, 73, 73, 74, 74, 73];
+    const power = [5.8, 7.2, 7.9, 8.1, 8.4, 8.3, 8.6, 8.8, 8.5, 8.7, 8.9, 9.1, 8.8, 8.9, 9.0, 9.2, 9.1, 8.9, 9.0, 9.3, 9.1, 6.2];
+    const drops = [0, 1, 0, 2, 0, 0, 3, 1, 0, 0, 4, 2, 0, 1, 0, 0, 6, 2, 0, 1, 0, 0];
+    const gpsOk = temp.map((v, i) => i !== 20);
+    const n = temp.length;
+    const cw = 588 / n;
+    const cx = (i) => 44 + (i + 0.5) * cw;
+    const tm = (i) => { const m = 11 + i; return '09:' + (m < 10 ? '0' + m : m); };
+    const sum = (a) => a.reduce((x, y) => x + y, 0);
+    const self = this;
+    function build(key, title, unitLabel, data, min, max, ticks, fmt, kind, thr, thrLabel, summary) {
+      const y = (v) => 176 - (v - min) / (max - min) * 164;
+      const tk = ticks.map((t) => ({ v: fmt(t), y: (y(t) + 4).toFixed(1) }));
+      const grid = ticks.slice(1).map((t) => 'M44 ' + (Math.round(y(t)) + 0.5) + 'H632').join(' ');
+      let points = '', barD = '';
+      if (kind === 'line') {
+        points = data.map((v, i) => cx(i).toFixed(1) + ',' + y(v).toFixed(1)).join(' ');
+      } else {
+        barD = data.map((v, i) => {
+          if (v <= 0) return '';
+          const x = cx(i), top = y(v);
+          return 'M' + (x - 7) + ' 176V' + (top + 3) + 'Q' + (x - 7) + ' ' + top + ' ' + (x - 4) + ' ' + top + 'H' + (x + 4) + 'Q' + (x + 7) + ' ' + top + ' ' + (x + 7) + ' ' + (top + 3) + 'V176Z';
+        }).join('');
+      }
+      const hi = s.h && s.h.c === key ? s.h.i : -1;
+      const hx = hi >= 0 ? cx(hi) : 0;
+      return {
+        title, unitLabel, summary,
+        aria: title + ' 추이, ' + tm(0) + '부터 ' + tm(n - 1) + '까지',
+        gridD: grid,
+        t0: tk[0].v, t0y: tk[0].y, t1: tk[1].v, t1y: tk[1].y, t2: tk[2].v, t2y: tk[2].y,
+        thrD: thr == null ? '' : 'M44 ' + y(thr) + 'H632',
+        thrTy: thr == null ? 0 : (y(thr) - 6).toFixed(1),
+        thrLabel: thr == null ? '' : thrLabel,
+        points, barD,
+        hx: hx.toFixed(1),
+        hy: hi >= 0 ? y(data[hi]).toFixed(1) : 0,
+        hOp: hi >= 0 ? 1 : 0,
+        dotOp: hi >= 0 && kind === 'line' ? 1 : 0,
+        hasHover: hi >= 0,
+        tipX: hi >= 0 ? Math.max(0, Math.min(640 - 112, hx - 56)).toFixed(0) : 0,
+        tipTime: hi >= 0 ? tm(hi) : '',
+        tipVal: hi >= 0 ? fmt(data[hi]) + unitLabel.replace('단위 ', '').replace('분당 ', '') : '',
+        cols: data.map((v, i) => ({ enter: () => self.setState({ h: { c: key, i } }) }))
+      };
+    }
+    const tMax = Math.max.apply(null, temp);
+    const tAvg = sum(temp) / n;
+    const pAvg = sum(power) / n;
+    const pMax = Math.max.apply(null, power);
+    const dSum = sum(drops);
+    const dPeak = drops.indexOf(Math.max.apply(null, drops));
+    const gCount = gpsOk.filter(Boolean).length;
+    const charts = [
+      build('temp', '온도', '°C', temp, 40, 90, [40, 60, 80], (v) => String(Math.round(v)), 'line', 80, '경고 기준 80°C', '최고 ' + tMax + '°C · 평균 ' + tAvg.toFixed(1) + '°C'),
+      build('power', '전력', 'W', power, 0, 12, [0, 6, 12], (v) => v.toFixed(1).replace('.0', ''), 'line', null, '', '평균 ' + pAvg.toFixed(1) + 'W · 최대 ' + pMax.toFixed(1) + 'W'),
+      build('drops', '프레임 드롭', '프레임', drops, 0, 8, [0, 4, 8], (v) => String(v), 'bar', null, '', '최다 ' + tm(dPeak) + ' · ' + drops[dPeak] + '프레임')
+    ];
+    return {
+      charts,
+      clearHover: () => this.setState({ h: null }),
+      tiles: [
+        { label: '최고 온도', value: String(tMax), unit: '°C', sub: '평균 ' + tAvg.toFixed(1) + '°C · 경고 기준 미만' },
+        { label: '평균 전력', value: pAvg.toFixed(1), unit: 'W', sub: '최대 ' + pMax.toFixed(1) + 'W' },
+        { label: '프레임 드롭', value: String(dSum), unit: '프레임', sub: '주행 21분 합계' },
+        { label: 'GPS 수신', value: String(Math.round(gCount / n * 100)), unit: '%', sub: (n - gCount) + '분 미수신 · ' + tm(20) }
+      ],
+      gps: gpsOk.map((ok) => ({ style: ok ? 'background:#EDEDEA;' : 'border:2px solid #FF6B5E;background:repeating-linear-gradient(135deg,#1C1C1C 0 3px,#4A1A17 3px 6px);' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

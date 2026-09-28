@@ -1,0 +1,83 @@
+.glyph {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.char {
+  font-size: var(--pw-fs-caption);
+}
+
+/* 위험: 45° 회전 사각형, 글자는 되돌린다 */
+.danger {
+  background: var(--pw-grade-danger-fill);
+  color: var(--pw-grade-danger-text);
+  border-radius: 3px;
+  transform: rotate(45deg);
+}
+
+.danger .char {
+  transform: rotate(-45deg);
+}
+
+.warn {
+  background: var(--pw-grade-warn-fill);
+  color: var(--pw-grade-warn-text);
+  border-radius: 50%;
+}
+
+.ok {
+  background: var(--pw-grade-ok-fill);
+  color: var(--pw-grade-ok-line);
+  border: 2px solid var(--pw-grade-ok-line);
+  border-radius: 50%;
+}
+
+/* md: 지도 마커·목록 행 */
+.md.danger {
+  width: 22px;
+  height: 22px;
+}
+
+.md.warn {
+  width: 26px;
+  height: 26px;
+}
+
+.md.ok {
+  width: 24px;
+  height: 24px;
+}
+
+/* sm: 범례·상세 배지 */
+.sm.danger {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.sm.warn,
+.sm.ok {
+  width: 18px;
+  height: 18px;
+}
+
+.sm .char {
+  font-size: 9px;
+}
+
+/* dot: KPI 라벨 앞 작은 모양 */
+.dot.danger {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+}
+
+.dot.warn,
+.dot.ok {
+  width: 12px;
+  height: 12px;
+}

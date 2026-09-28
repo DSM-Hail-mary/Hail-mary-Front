@@ -1,0 +1,65 @@
+.status {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: var(--pw-radius-pill);
+  font-size: var(--pw-fs-caption);
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.new {
+  background: var(--pw-status-new-bg);
+  color: var(--pw-status-new-text);
+}
+
+.checked {
+  background: var(--pw-status-checked-bg);
+  color: var(--pw-status-checked-text);
+}
+
+.planned {
+  background: transparent;
+  color: var(--pw-text);
+  box-shadow: inset 0 0 0 1.5px var(--pw-status-planned-ring);
+}
+
+.removed {
+  background: transparent;
+  color: var(--pw-text-muted);
+  box-shadow: inset 0 0 0 1.5px var(--pw-status-done-ring);
+}
+
+.none {
+  padding-inline: 0;
+  color: var(--pw-text-muted);
+}
+
+.hazard {
+  padding: 1px 6px;
+  border-radius: var(--pw-radius-pill);
+  font-size: var(--pw-fs-caption);
+  color: var(--pw-text-muted);
+  white-space: nowrap;
+}
+
+.hazardOn {
+  color: var(--pw-text);
+  box-shadow: inset 0 0 0 1px var(--pw-outline-subtle);
+}
+
+.fp {
+  padding: 1px 6px;
+  border-radius: var(--pw-radius-pill);
+  background: var(--pw-text);
+  color: var(--pw-text-on-light);
+  font-size: var(--pw-fs-caption);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.lg {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: var(--pw-fs-body);
+}

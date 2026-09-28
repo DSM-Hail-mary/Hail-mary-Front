@@ -1,0 +1,136 @@
+.card {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 600;
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--pw-surface);
+  border-radius: var(--pw-radius-card);
+  box-shadow: var(--pw-shadow-floating);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 8px 12px 16px;
+  border-bottom: 1px solid var(--pw-divider);
+}
+
+.grade {
+  font-size: var(--pw-fs-body);
+  font-weight: 700;
+}
+
+.danger {
+  color: var(--pw-danger-line);
+}
+
+.warn {
+  color: var(--pw-text);
+}
+
+.ok {
+  color: var(--pw-grade-ok-line);
+}
+
+.id {
+  font-size: var(--pw-fs-card);
+  font-weight: 500;
+}
+
+.unassigned {
+  color: var(--pw-text-muted);
+}
+
+.close {
+  margin-left: auto;
+  color: var(--pw-text-muted);
+}
+
+.body {
+  display: flex;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.thumb {
+  flex-shrink: 0;
+  width: 136px;
+  height: 102px;
+  object-fit: cover;
+  border-radius: var(--pw-radius-thumb);
+  background: var(--pw-crop-bg);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 6px 10px;
+  align-content: start;
+  font-size: var(--pw-fs-small);
+}
+
+.facts dt {
+  color: var(--pw-text-muted);
+}
+
+.facts dd.mono {
+  font-size: var(--pw-fs-caption);
+}
+
+.notice {
+  display: flex;
+  gap: 10px;
+  margin: 0 16px 14px;
+  padding: 12px 14px;
+  border-radius: var(--pw-radius-control);
+  background: var(--pw-bg-page);
+  font-size: var(--pw-fs-small);
+  line-height: 1.55;
+}
+
+.notice svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 16px 16px;
+}
+
+.confirm {
+  height: var(--pw-hit);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1.5px solid var(--pw-text);
+  border-radius: var(--pw-radius-control);
+  background: var(--pw-surface);
+  color: var(--pw-text);
+  font-size: var(--pw-fs-body);
+  font-weight: 600;
+}
+
+.confirm[aria-pressed='true'] {
+  background: var(--pw-brand-tint);
+}
+
+.confirm:disabled {
+  background: var(--pw-bg-page);
+  border-color: var(--pw-border);
+  color: var(--pw-text-disabled);
+}
+
+.error {
+  padding: 0 16px 14px;
+  font-size: var(--pw-fs-caption);
+  color: var(--pw-danger-text);
+}
