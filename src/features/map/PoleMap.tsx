@@ -1,10 +1,10 @@
 import L from 'leaflet';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { CircleMarker, MapContainer, Marker, Polyline, TileLayer, Tooltip } from 'react-leaflet';
 import { config } from '@/config';
 import { formatHourMinute } from '@/domain/format';
-import { GRADE_LABEL, poleIdLabel } from '@/domain/labels';
+import { GRADE_LABEL, hazardLabel, poleIdLabel } from '@/domain/labels';
 import { isFalsePositive } from '@/domain/records';
 import type { Drive, LatLng, PoleRecord } from '@/domain/types';
 import { GradeGlyph } from '@/ui/GradeGlyph';
@@ -18,39 +18,63 @@ const toLatLng = (p: LatLng): L.LatLngTuple => [p.lat, p.lng];
 const FIT_PADDING = { paddingTopLeft: L.point(60, 60), paddingBottomRight: L.point(400, 90) };
 const PAN_PADDING = { paddingTopLeft: L.point(60, 60), paddingBottomRight: L.point(420, 90) };
 
-function markerIcon(record: PoleRecord, selected: boolean): L.DivIcon {
-  const cls = [styles.marker, selected ? styles.markerSelected : '', isFalsePositive(record) ? styles.markerFp : '']
-    .filter(Boolean)
-    .join(' ');
-  return L.divIcon({
-    className: cls,
-    html: `<span class="${styles.markerInner}">${renderToStaticMarkup(<GradeGlyph grade={record.grade} />)}</span>`,
-    iconSize: [44, 44],
-    iconAnchor: [22, 22],
-  });
+/** 등급·오탐 조합별 아이콘은 한 번만 만든다. 선택·강조는 클래스만 바꾼다. */
+const iconCache = new Map<string, L.DivIcon>();
+
+function markerIcon(record: PoleRecord): L.DivIcon {
+  const fp = isFalsePositive(record);
+  const key = `${record.grade}:${fp}`;
+  let icon = iconCache.get(key);
+  if (!icon) {
+    icon = L.divIcon({
+      className: [styles.marker, fp ? styles.markerFp : ''].filter(Boolean).join(' '),
+      html: `<span class="${styles.markerInner}">${renderToStaticMarkup(<GradeGlyph grade={record.grade} />)}</span>`,
+      iconSize: [44, 44],
+      iconAnchor: [22, 22],
+    });
+    iconCache.set(key, icon);
+  }
+  return icon;
 }
 
-function RecordMarker({
-  record,
-  position,
-  selected,
-  onSelect,
-}: {
+interface MarkerProps {
   record: PoleRecord;
   position: LatLng;
   selected: boolean;
+  hovered: boolean;
   onSelect: (id: string) => void;
-}) {
-  const markerRef = useRef<L.Marker>(null);
-  const icon = useMemo(() => markerIcon(record, selected), [record, selected]);
-  const label = `${poleIdLabel(record.poleId)} ${GRADE_LABEL[record.grade]}${isFalsePositive(record) ? ' (오탐)' : ''}`;
+  onHover: (id: string | null) => void;
+}
 
-  // 아이콘이 바뀌면 Leaflet이 요소를 새로 만들므로 접근성 속성을 다시 단다.
+const RecordMarker = memo(function RecordMarker({
+  record,
+  position,
+  selected,
+  hovered,
+  onSelect,
+  onHover,
+}: MarkerProps) {
+  const markerRef = useRef<L.Marker>(null);
+  const icon = markerIcon(record);
+  const label = `${poleIdLabel(record.poleId)} ${GRADE_LABEL[record.grade]}${isFalsePositive(record) ? ' (오탐)' : ''}`;
+  const handlers = useMemo<L.LeafletEventHandlerFnMap>(
+    () => ({
+      click: () => onSelect(record.id),
+      mouseover: () => onHover(record.id),
+      mouseout: () => onHover(null),
+    }),
+    [onSelect, onHover, record.id],
+  );
+
+  // 선택·강조 상태와 접근성 속성은 요소에 직접 반영한다 (아이콘을 다시 만들지 않음).
   useEffect(() => {
     const el = markerRef.current?.getElement();
-    el?.setAttribute('aria-label', label);
-    el?.setAttribute('aria-pressed', String(selected));
-  }, [icon, label, selected]);
+    if (!el) return;
+    el.classList.toggle(styles.markerSelected!, selected);
+    el.classList.toggle(styles.markerHovered!, hovered && !selected);
+    el.setAttribute('aria-label', label);
+    el.setAttribute('aria-pressed', String(selected));
+  }, [icon, label, selected, hovered]);
 
   return (
     <Marker
@@ -58,49 +82,62 @@ function RecordMarker({
       position={toLatLng(position)}
       icon={icon}
       keyboard
-      zIndexOffset={selected ? 1000 : record.grade === 'danger' ? 100 : 0}
-      eventHandlers={{ click: () => onSelect(record.id) }}
-    />
+      zIndexOffset={selected ? 1000 : hovered ? 900 : record.grade === 'danger' ? 100 : 0}
+      eventHandlers={handlers}
+    >
+      {!selected && (
+        <Tooltip direction="top" offset={[0, -18]} className={styles.markerTip}>
+          <span className="mono">{poleIdLabel(record.poleId)}</span> · {GRADE_LABEL[record.grade]}
+          {record.hazard ? ` · ${hazardLabel(record.hazard)}` : ''}
+        </Tooltip>
+      )}
+    </Marker>
   );
-}
+});
 
 export interface PoleMapProps {
   drives: readonly Drive[];
   /** 지도에 그릴 기록 (필터 적용 후). 좌표 없는 기록은 여기서 걸러진다. */
   records: readonly PoleRecord[];
   selectedId: string | null;
+  /** 목록 행에 마우스를 올린 기록. 지도 마커도 같이 강조한다. */
+  hoveredId: string | null;
   onSelect: (id: string) => void;
+  onHover: (id: string | null) => void;
   /** 지도 위에 띄울 요소 (요약 카드, 빈 상태 안내 등). */
   children?: ReactNode;
 }
 
-export function PoleMap({ drives, records, selectedId, onSelect, children }: PoleMapProps) {
+export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHover, children }: PoleMapProps) {
   const [map, setMap] = useState<L.Map | null>(null);
-  const located = records.filter((r): r is PoleRecord & { position: LatLng } => r.position !== null);
+  const located = useMemo(
+    () => records.filter((r): r is PoleRecord & { position: LatLng } => r.position !== null),
+    [records],
+  );
 
   // 컨테이너 크기가 바뀌면(창 크기, 첫 레이아웃) Leaflet에 다시 알려 준다.
   useEffect(() => {
     if (!map) return;
-    const observer = new ResizeObserver(() => map.invalidateSize());
+    const observer = new ResizeObserver(() => map.invalidateSize({ pan: false }));
     observer.observe(map.getContainer());
     return () => observer.disconnect();
   }, [map]);
 
-  // 주행이 바뀌면 경로 전체가 보이게 맞춘다.
+  // 주행이 바뀌면 경로 전체가 보이게 맞춘다. 애니메이션 없이 바로 옮겨 중간 줌 타일 요청을 만들지 않는다.
   const boundsKey = drives.map((d) => d.id).join(',');
   useEffect(() => {
     if (!map) return;
     map.invalidateSize();
     const points = drives.flatMap((d) => d.route.map(toLatLng));
-    if (points.length > 0) map.fitBounds(L.latLngBounds(points), FIT_PADDING);
+    if (points.length > 0) map.fitBounds(L.latLngBounds(points), { ...FIT_PADDING, animate: false });
     // 경로 좌표는 주행 ID가 같으면 같다고 본다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, boundsKey]);
 
-  // 목록에서 고른 기록이 화면 밖이면 보이는 곳까지 옮긴다.
+  // 목록에서 고른 기록이 화면 밖이면 보이는 곳까지 부드럽게 옮긴다 (같은 줌이라 타일 요청이 적다).
   const selectedPos = located.find((r) => r.id === selectedId)?.position;
   useEffect(() => {
-    if (map && selectedPos) map.panInside(toLatLng(selectedPos), PAN_PADDING);
+    if (map && selectedPos) map.panInside(toLatLng(selectedPos), { ...PAN_PADDING, animate: true, duration: 0.35 });
   }, [map, selectedPos]);
 
   return (
@@ -113,11 +150,16 @@ export function PoleMap({ drives, records, selectedId, onSelect, children }: Pol
         zoomControl={false}
         attributionControl
         keyboard
+        zoomSnap={0.5}
+        wheelPxPerZoomLevel={90}
       >
         <TileLayer
           url={config.map.tileUrl}
           attribution={config.map.attribution}
           className={config.map.darkenTiles ? styles.darkTiles : undefined}
+          // 움직이는 동안이 아니라 멈췄을 때만 타일을 받는다 → 요청 수가 줄어든다.
+          updateWhenZooming={false}
+          updateWhenIdle
         />
         {drives.map((d) => (
           <DriveLayer key={d.id} drive={d} />
@@ -128,7 +170,9 @@ export function PoleMap({ drives, records, selectedId, onSelect, children }: Pol
             record={r}
             position={r.position}
             selected={r.id === selectedId}
+            hovered={r.id === hoveredId}
             onSelect={onSelect}
+            onHover={onHover}
           />
         ))}
       </MapContainer>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { config } from '@/config';
 import { downloadCsv, recordsToCsv } from '@/domain/csv';
 import { formatTime } from '@/domain/format';
@@ -45,7 +45,9 @@ interface Props {
   filters: RecordFilters;
   onFiltersChange: (patch: Partial<RecordFilters>) => void;
   selectedId: string | null;
+  hoveredId: string | null;
   onSelect: (id: string) => void;
+  onHover: (id: string | null) => void;
   /** 기록이 하나도 없는 날은 필터를 숨기고 날짜만 보여 준다. */
   showFilters: boolean;
   dateLabel: string;
@@ -61,7 +63,9 @@ export function RecordList({
   filters,
   onFiltersChange,
   selectedId,
+  hoveredId,
   onSelect,
+  onHover,
   showFilters,
   dateLabel,
   empty,
@@ -85,6 +89,19 @@ export function RecordList({
     const row = listRef.current?.querySelector<HTMLElement>(`[data-record-id="${CSS.escape(selectedId)}"]`);
     row?.scrollIntoView({ block: 'nearest' });
   }, [selectedId, view.page]);
+
+  // ↑/↓: 목록 안에서 선택을 옮긴다 (페이지 경계도 넘는다).
+  const onListKey = (e: KeyboardEvent) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const idx = selectedId ? records.findIndex((r) => r.id === selectedId) : -1;
+    const next = records[e.key === 'ArrowDown' ? Math.min(records.length - 1, idx + 1) : Math.max(0, idx - 1)];
+    if (!next) return;
+    onSelect(next.id);
+    requestAnimationFrame(() =>
+      listRef.current?.querySelector<HTMLElement>(`[data-record-id="${CSS.escape(next.id)}"]`)?.focus(),
+    );
+  };
 
   const exportCsv = () => downloadCsv(`polewatch_${date}.csv`, recordsToCsv(records));
 
@@ -157,10 +174,22 @@ export function RecordList({
         empty
       ) : (
         <>
-          <ol ref={listRef} className={styles.list}>
+          <ol
+            ref={listRef}
+            className={styles.list}
+            onKeyDown={onListKey}
+            onMouseLeave={() => onHover(null)}
+            aria-label="전주 목록 (↑/↓로 이동, Esc로 선택 해제)"
+          >
             {view.items.map((r) => (
               <li key={r.id} className={styles.item}>
-                <RecordRow record={r} selected={r.id === selectedId} onSelect={onSelect} />
+                <RecordRow
+                  record={r}
+                  selected={r.id === selectedId}
+                  hovered={r.id === hoveredId}
+                  onSelect={onSelect}
+                  onHover={onHover}
+                />
               </li>
             ))}
           </ol>
@@ -189,11 +218,15 @@ export function RecordList({
 function RecordRow({
   record,
   selected,
+  hovered,
   onSelect,
+  onHover,
 }: {
   record: PoleRecord;
   selected: boolean;
+  hovered: boolean;
   onSelect: (id: string) => void;
+  onHover: (id: string | null) => void;
 }) {
   const fp = isFalsePositive(record);
   return (
@@ -203,7 +236,11 @@ function RecordRow({
       aria-pressed={selected}
       aria-label={`${poleIdLabel(record.poleId)} ${GRADE_LABEL[record.grade]}${fp ? ' 오탐' : ''}`}
       className={`${styles.row} ${fp ? styles.rowFp : ''}`}
+      data-hovered={hovered || undefined}
       onClick={() => onSelect(record.id)}
+      onMouseEnter={() => onHover(record.id)}
+      onFocus={() => onHover(record.id)}
+      onBlur={() => onHover(null)}
     >
       <span className={styles.glyphCell}>
         <GradeGlyph grade={record.grade} />

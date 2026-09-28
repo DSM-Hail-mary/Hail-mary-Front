@@ -18,7 +18,7 @@ const SYNC_TOTAL_IMAGES = 340;
 
 /** 메모리 안에서 동작하는 API. 새로고침하면 처음 상태로 돌아간다. */
 export function createMockApi(options: MockApiOptions = {}): PoleWatchApi {
-  const { latencyMs = 150, initialSync = 'done', syncDurationMs = 8000, now = Date.now } = options;
+  const { latencyMs = 40, initialSync = 'done', syncDurationMs = 8000, now = Date.now } = options;
   const data = createMockDataset();
   const records = new Map<string, PoleRecord>(data.records.map((r) => [r.id, r]));
   let lastSyncedAt: string | null = data.lastSyncedAt;

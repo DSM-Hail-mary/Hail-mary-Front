@@ -61,8 +61,18 @@
     0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
+.markerHovered .markerInner {
+  transform: scale(1.2);
+}
+
 .markerSelected .markerInner {
   transform: scale(1.4);
+}
+
+.markerHovered .markerInner > span {
+  box-shadow:
+    0 0 0 2px var(--pw-bg-page),
+    0 0 0 4px var(--pw-text);
 }
 
 .markerSelected .markerInner > span {
@@ -76,6 +86,22 @@
 
 .markerSelected.markerFp .markerInner {
   opacity: 0.8;
+}
+
+.markerTip {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  background: var(--pw-text);
+  color: var(--pw-text-on-light);
+  font-family: var(--pw-font-sans);
+  font-size: var(--pw-fs-caption);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.markerTip::before {
+  border-top-color: var(--pw-text) !important;
 }
 
 .pinLabel {

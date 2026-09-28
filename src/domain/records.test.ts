@@ -5,6 +5,8 @@ import {
   basisTrend,
   countByGrade,
   dangerQueuePosition,
+  historySummary,
+  intervalLabel,
   pageOf,
   paginate,
   previousStatus,
@@ -156,5 +158,25 @@ describe('paginate / pageOf', () => {
     expect(pageOf(items, '0', 50)).toBe(1);
     expect(pageOf(items, '50', 50)).toBe(2);
     expect(pageOf(items, 'x', 50)).toBeNull();
+  });
+});
+
+describe('historySummary', () => {
+  it('간격·변화·연속 발견을 이어 붙인다', () => {
+    const r = makeRecord({
+      consecutiveFinds: 2,
+      previousVisit: { date: '2026-09-13', thumbnailUrl: '', basis: { metric: 'nest_size', level: 1 } },
+    });
+    expect(historySummary(r, '2026-09-27')).toBe('2주 사이 커짐 · 연속 발견 2회');
+  });
+
+  it('이전엔 없던 위험 요소는 새로 발견', () => {
+    const r = makeRecord({ previousVisit: { date: '2026-09-20', thumbnailUrl: '', basis: null } });
+    expect(historySummary(r, '2026-09-27')).toBe('1주 사이 새로 발견');
+  });
+
+  it('이전 방문이 없으면 null, 간격은 일 단위도', () => {
+    expect(historySummary(makeRecord(), '2026-09-27')).toBeNull();
+    expect(intervalLabel('2026-09-20', '2026-09-25')).toBe('5일');
   });
 });

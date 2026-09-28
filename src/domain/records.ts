@@ -1,5 +1,7 @@
 import { STATUS_FLOW } from './labels';
-import type { Grade, HazardType, PoleRecord, ProcessStatus } from './types';
+import type { Grade, GradeBasis, HazardType, PoleRecord, ProcessStatus } from './types';
+
+type GradeBasisMetric = GradeBasis['metric'];
 
 export type GradeFilter = Grade | 'all';
 export type HazardFilter = HazardType | 'all';
@@ -169,4 +171,28 @@ export function paginate<T>(items: readonly T[], page: number, pageSize: number)
 export function pageOf<T extends { id: string }>(items: readonly T[], id: string, pageSize: number): number | null {
   const idx = items.findIndex((it) => it.id === id);
   return idx < 0 ? null : Math.floor(idx / pageSize) + 1;
+}
+
+/** 두 날짜(YYYY-MM-DD) 사이 간격 문구: "2주", "5일". */
+export function intervalLabel(from: string, to: string): string {
+  const days = Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
+  return days > 0 && days % 7 === 0 ? `${days / 7}주` : `${days}일`;
+}
+
+const TREND_WORD: Record<GradeBasisMetric, Record<BasisTrend, string>> = {
+  nest_size: { up: '커짐', down: '작아짐', same: '변화 없음' },
+  tree_proximity: { up: '가까워짐', down: '멀어짐', same: '변화 없음' },
+};
+
+/** 이력 비교 요약: "2주 사이 커짐 · 연속 발견 2회". 비교할 이전 방문이 없으면 `null`. */
+export function historySummary(record: PoleRecord, recordDate: string): string | null {
+  const prev = record.previousVisit;
+  if (!prev) return null;
+  const parts: string[] = [];
+  const trend = basisTrend(record);
+  const metric = record.basis?.metric ?? prev.basis?.metric;
+  if (trend && metric) parts.push(`${intervalLabel(prev.date, recordDate)} 사이 ${TREND_WORD[metric][trend]}`);
+  else if (!prev.basis && record.basis) parts.push(`${intervalLabel(prev.date, recordDate)} 사이 새로 발견`);
+  if (record.consecutiveFinds > 1) parts.push(`연속 발견 ${record.consecutiveFinds}회`);
+  return parts.join(' · ') || null;
 }

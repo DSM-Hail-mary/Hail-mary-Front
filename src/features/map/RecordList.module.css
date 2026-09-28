@@ -72,8 +72,13 @@
   text-align: left;
 }
 
-.row:hover {
-  background: #222222;
+.row {
+  transition: background-color 0.12s;
+}
+
+.row:hover,
+.row[data-hovered] {
+  background: #242424;
 }
 
 .row[aria-pressed='true'] {

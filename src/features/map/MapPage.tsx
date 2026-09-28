@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDriveDates, useDrives, useRecords } from '@/api/queries';
 import { formatDateLabel } from '@/domain/format';
 import { GRADE_LABEL, HAZARD_LABEL, STATUS_LABEL } from '@/domain/labels';
@@ -24,6 +24,19 @@ export function MapPage() {
   const visible = useMemo(() => applyFilters(all, filters), [all, filters]);
   // 등급 필터는 지도와 목록에 함께 적용된다. 선택은 필터에 걸러지면 카드도 닫힌다.
   const selected = visible.find((r) => r.id === selectedId) ?? null;
+
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+
+  // Esc: 선택 해제 (입력 중이거나 펼친 목록이 있으면 그쪽이 먼저 처리한다).
+  useEffect(() => {
+    if (!selectedId) return;
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (e.key === 'Escape' && !(t && /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName))) select(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selectedId, select]);
 
   const latestOtherDate = driveDates?.find((d) => d.recordCount > 0 && d.date !== date)?.date;
 
@@ -70,7 +83,14 @@ export function MapPage() {
     <div className={styles.page}>
       <KpiBar date={date} onDateChange={setDate} counts={recordsQuery.isSuccess ? counts : null} />
       <div className={styles.body}>
-        <PoleMap drives={drivesQuery.data ?? []} records={visible} selectedId={selectedId} onSelect={select}>
+        <PoleMap
+          drives={drivesQuery.data ?? []}
+          records={visible}
+          selectedId={selectedId}
+          hoveredId={hoveredId}
+          onSelect={select}
+          onHover={setHoveredId}
+        >
           {selected && <SummaryCard key={selected.id} record={selected} onClose={() => select(null)} />}
         </PoleMap>
         <RecordList
@@ -80,7 +100,9 @@ export function MapPage() {
           filters={filters}
           onFiltersChange={setFilters}
           selectedId={selectedId}
+          hoveredId={hoveredId}
           onSelect={select}
+          onHover={setHoveredId}
           showFilters={all.length > 0}
           dateLabel={formatDateLabel(date)}
           empty={empty}

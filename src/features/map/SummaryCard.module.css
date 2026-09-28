@@ -10,6 +10,14 @@
   background: var(--pw-surface);
   border-radius: var(--pw-radius-card);
   box-shadow: var(--pw-shadow-floating);
+  animation: card-in 0.18s ease-out;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
 }
 
 .head {
