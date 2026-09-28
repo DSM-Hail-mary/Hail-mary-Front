@@ -2,7 +2,8 @@ import { useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEven
 import { axisScale, linear } from './scale';
 import styles from './TimeSeriesChart.module.css';
 
-const HEIGHT = 200;
+/** 디자인 기준 높이. 부모가 더 크면 늘어난다 (최소 이 값). */
+const MIN_HEIGHT = 200;
 const M = { top: 12, right: 8, bottom: 24, left: 44 };
 const TIP_W = 112;
 
@@ -37,20 +38,28 @@ export function TimeSeriesChart({
   ariaLabel,
 }: TimeSeriesChartProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(640);
+  const [size, setSize] = useState({ width: 640, height: MIN_HEIGHT });
+  const { width, height } = size;
   const [hover, setHover] = useState<number | null>(null);
 
   useLayoutEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
-    const observer = new ResizeObserver(([entry]) => entry && setWidth(Math.max(240, entry.contentRect.width)));
+    const observer = new ResizeObserver(([entry]) => {
+      if (!entry) return;
+      const next = {
+        width: Math.max(240, Math.round(entry.contentRect.width)),
+        height: Math.max(MIN_HEIGHT, Math.round(entry.contentRect.height)),
+      };
+      setSize((prev) => (prev.width === next.width && prev.height === next.height ? prev : next));
+    });
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
   const n = values.length;
   const plotW = width - M.left - M.right;
-  const bottom = HEIGHT - M.bottom;
+  const bottom = height - M.bottom;
   const scale = axisScale(values, { zeroBased, threshold });
   const y = linear([scale.min, scale.max], [bottom, M.top]);
   const cw = n > 0 ? plotW / n : plotW;
@@ -88,7 +97,7 @@ export function TimeSeriesChart({
       onKeyDown={onKey}
       onBlur={() => setHover(null)}
     >
-      <svg width={width} height={HEIGHT} viewBox={`0 0 ${width} ${HEIGHT}`} aria-hidden="true">
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
         {scale.ticks.slice(1).map((t) => (
           <path key={t} d={`M${M.left} ${Math.round(y(t)) + 0.5}H${width - M.right}`} className={styles.grid} />
         ))}
@@ -131,15 +140,25 @@ export function TimeSeriesChart({
         )}
 
         {tickIdx.map((i, k) => (
-          <text key={k} x={cx(i)} y={HEIGHT - 6} textAnchor="middle" className={styles.axis}>
+          <text key={k} x={cx(i)} y={height - 6} textAnchor="middle" className={styles.axis}>
             {labels[i]}
           </text>
         ))}
 
         {hover != null && hv !== undefined && (
           <>
+            {/* 크로스헤어: 세로(시각) + 가로(값) 가이드선 */}
             <line x1={hx} x2={hx} y1={M.top} y2={bottom} className={styles.guide} />
+            <line x1={M.left} x2={width - M.right} y1={y(hv)} y2={y(hv)} className={styles.guide} />
             {kind === 'line' && <circle cx={hx} cy={y(hv)} r={5} className={styles.dot} />}
+            {/* 축 배지: y축에 값, x축에 시각 */}
+            <AxisBadge x={M.left - 4} y={y(hv)} anchor="end" text={format(hv)} />
+            <AxisBadge
+              x={Math.max(M.left + 22, Math.min(width - M.right - 22, hx))}
+              y={height - 10}
+              anchor="middle"
+              text={labels[hover] ?? ''}
+            />
           </>
         )}
       </svg>
@@ -153,5 +172,19 @@ export function TimeSeriesChart({
         </div>
       )}
     </div>
+  );
+}
+
+/** 축 위에 겹쳐 그리는 밝은 값 배지 (크로스헤어가 가리키는 값·시각). */
+function AxisBadge({ x, y, text, anchor }: { x: number; y: number; text: string; anchor: 'end' | 'middle' }) {
+  const w = Math.max(28, text.length * 7 + 10);
+  const left = anchor === 'end' ? x - w : x - w / 2;
+  return (
+    <g className={styles.badge}>
+      <rect x={left} y={y - 9} width={w} height={18} rx={4} />
+      <text x={left + w / 2} y={y + 4} textAnchor="middle">
+        {text}
+      </text>
+    </g>
   );
 }

@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100%;
   overflow: hidden;
   background: var(--pw-surface);
   border-radius: var(--pw-radius-card);
@@ -70,12 +71,21 @@
 }
 
 .stageWrap {
+  /* 남는 높이를 모두 쓰고, 그 안에서 4:3을 최대 크기로 맞춘다 (가로·세로 중 좁은 쪽 기준). */
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
   padding: 16px 16px 0;
+  container-type: size;
 }
 
 /* 본 이미지 4:3 */
 .stage {
   position: relative;
+  flex-shrink: 0;
+  width: min(100cqw, 100cqh * 4 / 3);
   aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: var(--pw-radius-control);
@@ -186,6 +196,9 @@
 
 /* 썸네일 5칸 */
 .thumbs {
+  /* 썸네일 높이: 디자인 121px, 낮은 화면에서는 줄인다 */
+  --thumb-h: clamp(56px, 11vh, 121px);
+  flex-shrink: 0;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
@@ -205,7 +218,7 @@
 
 .thumbImage {
   display: block;
-  aspect-ratio: 4 / 3;
+  height: var(--thumb-h);
   overflow: hidden;
   border-radius: var(--pw-radius-thumb);
   box-shadow: 0 0 0 1px var(--pw-border);
@@ -244,7 +257,7 @@
 }
 
 .emptySlot {
-  aspect-ratio: 4 / 3;
+  height: var(--thumb-h);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -253,4 +266,42 @@
   background: repeating-linear-gradient(135deg, var(--pw-hatch-a) 0 8px, var(--pw-hatch-b) 8px 16px);
   font-size: var(--pw-fs-caption);
   color: var(--pw-text-muted);
+}
+
+/* 좁은 화면(1열 배치): 높이 기준을 쓰지 않고 폭에 맞춘다 */
+@media (max-width: 1100px) {
+  .viewer {
+    height: auto;
+  }
+
+  .stageWrap {
+    container-type: inline-size;
+  }
+
+  .stage {
+    width: min(100%, 72vh * 4 / 3);
+  }
+}
+
+@media (max-width: 760px) {
+  .toolbar {
+    height: auto;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    padding: 8px 8px 8px 12px;
+  }
+
+  .caption,
+  .divider {
+    display: none;
+  }
+
+  .stageWrap {
+    padding: 12px 12px 0;
+  }
+
+  .thumbs {
+    gap: 6px;
+    padding: 10px 12px 12px;
+  }
 }

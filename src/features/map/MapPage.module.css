@@ -80,3 +80,48 @@
   font-family: var(--pw-font-mono);
   font-size: var(--pw-fs-small);
 }
+
+@media (max-width: 1100px) {
+  .kpiBar {
+    gap: 20px;
+  }
+
+  .kpis {
+    gap: 28px;
+  }
+}
+
+@media (max-width: 760px) {
+  /* 지도 위, 목록 아래로 쌓고 페이지 전체가 스크롤 */
+  .page {
+    min-height: auto;
+    flex-shrink: 0;
+  }
+
+  .body {
+    flex-direction: column;
+    flex-grow: 0;
+  }
+
+  .kpiBar {
+    height: auto;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .kpiDivider {
+    display: none;
+  }
+
+  .kpis {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .kpiValue {
+    font-size: 24px;
+  }
+}

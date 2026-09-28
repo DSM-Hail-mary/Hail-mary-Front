@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router';
 import { routes } from './routes';
 
@@ -24,7 +24,20 @@ function load(): NavMemory {
   return { mapSearch: '', lastRecordId: null };
 }
 
-const NavMemoryContext = createContext<NavMemory>({ mapSearch: '', lastRecordId: null });
+interface NavMemoryValue extends NavMemory {
+  /** 지도를 아직 안 본 채 상세로 바로 들어왔을 때, 지도 탭이 그 기록의 날짜·선택으로 열리게 한다. */
+  seedMap: (date: string, recordId: string) => void;
+}
+
+const NavMemoryContext = createContext<NavMemoryValue>({ mapSearch: '', lastRecordId: null, seedMap: () => {} });
+
+function persist(next: NavMemory) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    // 저장소를 못 쓰면 이번 세션 메모리로만 기억한다.
+  }
+}
 
 export function NavMemoryProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -41,18 +54,22 @@ export function NavMemoryProvider({ children }: { children: ReactNode }) {
         const id = decodeURIComponent(location.pathname.slice(routes.paths.poles.length + 1));
         if (id) next = { ...prev, lastRecordId: id };
       }
-      if (next !== prev) {
-        try {
-          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-        } catch {
-          // 무시
-        }
-      }
+      if (next !== prev) persist(next);
       return next;
     });
   }, [location.pathname, location.search]);
 
-  return <NavMemoryContext.Provider value={memory}>{children}</NavMemoryContext.Provider>;
+  const seedMap = useCallback((date: string, recordId: string) => {
+    setMemory((prev) => {
+      if (prev.mapSearch) return prev;
+      const next = { ...prev, mapSearch: `?${new URLSearchParams({ date, sel: recordId })}` };
+      persist(next);
+      return next;
+    });
+  }, []);
+
+  const value = useMemo(() => ({ ...memory, seedMap }), [memory, seedMap]);
+  return <NavMemoryContext.Provider value={value}>{children}</NavMemoryContext.Provider>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

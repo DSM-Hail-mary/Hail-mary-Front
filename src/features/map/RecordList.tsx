@@ -91,8 +91,15 @@ export function RecordList({
 
   useEffect(() => {
     if (!selectedId) return;
-    const row = listRef.current?.querySelector<HTMLElement>(`[data-record-id="${CSS.escape(selectedId)}"]`);
-    row?.scrollIntoView({ block: 'nearest' });
+    // 목록 상자 안에서만 스크롤한다 (scrollIntoView는 페이지 전체까지 움직여 모바일에서 지도가 밀려난다).
+    const list = listRef.current;
+    const row = list?.querySelector<HTMLElement>(`[data-record-id="${CSS.escape(selectedId)}"]`);
+    if (!list || !row || list.scrollHeight <= list.clientHeight) return;
+    const top = row.offsetTop; // .list가 position: relative라 목록 기준 위치
+    if (top < list.scrollTop) list.scrollTop = top;
+    else if (top + row.offsetHeight > list.scrollTop + list.clientHeight) {
+      list.scrollTop = top + row.offsetHeight - list.clientHeight;
+    }
   }, [selectedId, view.page, records.length]);
 
   // ↑/↓: 목록 안에서 선택을 옮긴다 (페이지 경계도 넘는다).

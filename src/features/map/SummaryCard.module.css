@@ -142,3 +142,48 @@
   font-size: var(--pw-fs-caption);
   color: var(--pw-danger-text);
 }
+
+@media (max-width: 1100px) {
+  .card {
+    top: 12px;
+    right: 12px;
+    width: min(340px, calc(100% - 24px));
+  }
+}
+
+/* 모바일: 지도 아래쪽 시트 */
+@media (max-width: 760px) {
+  .card {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: auto;
+    border-radius: var(--pw-radius-card) var(--pw-radius-card) 0 0;
+    animation-name: sheet-in;
+  }
+
+  .body {
+    padding: 12px;
+  }
+
+  .thumb {
+    width: 104px;
+    height: 78px;
+  }
+
+  .notice {
+    display: none;
+  }
+
+  .actions {
+    padding: 0 12px 12px;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}

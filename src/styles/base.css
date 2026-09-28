@@ -12,8 +12,8 @@ body,
 
 body {
   margin: 0;
-  /* 데스크톱 대시보드(1280~1440px) 전용. 더 좁으면 가로 스크롤. */
-  min-width: 1200px;
+  /* 기준은 데스크톱(1280~1440px). 더 넓으면 늘어나고, 좁으면 각 화면이 1열로 접힌다 (@media 760/1100px). */
+  min-width: 320px;
   background: var(--pw-bg-page);
   color: var(--pw-text);
   font-family: var(--pw-font-sans);

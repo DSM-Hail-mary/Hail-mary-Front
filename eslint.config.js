@@ -17,4 +17,10 @@ export default tseslint.config(
       '@typescript-eslint/consistent-type-imports': 'error',
     },
   },
+  {
+    // Playwright 테스트: 픽스처의 use()는 React 훅이 아니다
+    files: ['tests/**/*.ts', 'playwright.config.ts'],
+    languageOptions: { globals: globals.node },
+    rules: { 'react-hooks/rules-of-hooks': 'off', 'react-refresh/only-export-components': 'off' },
+  },
 );

@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { isNotFound } from '@/api/PoleWatchApi';
 import { useRecord, useRecords } from '@/api/queries';
+import { useNavMemory } from '@/app/navMemory';
 import { routes } from '@/app/routes';
 import { dateOf } from '@/domain/format';
 import { GRADE_LABEL, poleIdLabel } from '@/domain/labels';
@@ -46,6 +47,8 @@ function Detail({ record }: { record: PoleRecord }) {
   const navigate = useNavigate();
   const date = dateOf(record.recordedAt);
   const { data: sameDay } = useRecords(date);
+  const { seedMap } = useNavMemory();
+  useEffect(() => seedMap(date, record.id), [seedMap, date, record.id]);
   const queue = useMemo(() => (sameDay ? dangerQueuePosition(sameDay, record.id) : null), [sameDay, record.id]);
 
   // [ / ] 로 이전·다음 위험 전주

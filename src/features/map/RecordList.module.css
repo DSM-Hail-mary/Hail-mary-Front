@@ -51,6 +51,7 @@
 }
 
 .list {
+  position: relative;
   flex-grow: 1;
   overflow-y: auto;
 }
@@ -145,4 +146,39 @@
 
 .pager > span {
   margin-right: auto;
+}
+
+@media (max-width: 1100px) {
+  .panel {
+    width: 380px;
+  }
+
+  .head {
+    padding-inline: 16px;
+  }
+
+  .row {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 760px) {
+  .panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--pw-border);
+  }
+
+  /* 페이지가 스크롤되므로 목록 자체는 늘어난다 */
+  .list {
+    overflow: visible;
+  }
+
+  .selects {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .selects > :last-child {
+    grid-column: 1 / -1;
+  }
 }

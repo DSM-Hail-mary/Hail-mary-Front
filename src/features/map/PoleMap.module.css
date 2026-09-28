@@ -193,3 +193,28 @@
     inset 3px 0 0 var(--pw-danger-line),
     var(--pw-shadow-floating-sm);
 }
+
+@media (max-width: 760px) {
+  .root {
+    flex: 0 0 auto;
+    height: 60vh;
+    min-height: 360px;
+  }
+
+  .legend {
+    left: 12px;
+    bottom: 12px;
+    padding: 8px 10px;
+  }
+
+  .zoom {
+    right: 12px;
+    bottom: 20px;
+  }
+
+  .tileNotice {
+    left: 12px;
+    right: 12px;
+    top: 12px;
+  }
+}

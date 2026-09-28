@@ -121,3 +121,55 @@
   color: var(--pw-nav-text-active);
   font-size: var(--pw-fs-small);
 }
+
+@media (max-width: 1100px) {
+  .bar {
+    gap: 24px;
+  }
+
+  .syncMeta:last-child,
+  .syncDivider {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .bar {
+    height: auto;
+    flex-wrap: wrap;
+    gap: 0 12px;
+    padding: 0 12px;
+  }
+
+  .brand {
+    height: 52px;
+  }
+
+  .sync {
+    height: 52px;
+    margin-left: auto;
+  }
+
+  .spacer {
+    display: none;
+  }
+
+  /* 탭은 두 번째 줄 전체 폭, 넘치면 가로 스크롤 */
+  .nav {
+    order: 3;
+    width: 100%;
+    height: 48px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tab {
+    flex: 1 0 auto;
+    justify-content: center;
+    padding: 3px 12px 0;
+  }
+
+  .syncMeta {
+    display: none;
+  }
+}

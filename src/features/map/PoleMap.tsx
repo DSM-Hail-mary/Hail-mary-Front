@@ -13,9 +13,18 @@ import styles from './PoleMap.module.css';
 
 const toLatLng = (p: LatLng): L.LatLngTuple => [p.lat, p.lng];
 
-/** 떠 있는 카드·범례에 가려지지 않게 두는 여백. */
-const FIT_PADDING = { paddingTopLeft: L.point(60, 60), paddingBottomRight: L.point(400, 90) };
-const PAN_PADDING = { paddingTopLeft: L.point(60, 60), paddingBottomRight: L.point(420, 90) };
+/**
+ * 떠 있는 요소(요약 카드·범례)에 가려지지 않게 두는 여백. 지도 크기에 맞춰 줄인다.
+ * - 넓은 지도: 오른쪽 위 요약 카드(360px) 자리를 비운다
+ * - 좁은 지도(모바일): 아래쪽 시트 자리를 비운다
+ */
+function overlayPadding(map: L.Map) {
+  const { x, y } = map.getSize();
+  if (x <= 760) {
+    return { paddingTopLeft: L.point(24, 24), paddingBottomRight: L.point(24, Math.min(260, y * 0.45)) };
+  }
+  return { paddingTopLeft: L.point(60, 60), paddingBottomRight: L.point(Math.min(420, x * 0.4), 90) };
+}
 
 /** 등급·오탐 조합별 아이콘은 한 번만 만든다. 선택·강조는 클래스만 바꾼다. */
 const iconCache = new Map<string, L.DivIcon>();
@@ -133,7 +142,7 @@ export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHo
     if (!map) return;
     map.invalidateSize();
     const points = drives.flatMap((d) => d.route.map(toLatLng));
-    if (points.length > 0) map.fitBounds(L.latLngBounds(points), { ...FIT_PADDING, animate: false });
+    if (points.length > 0) map.fitBounds(L.latLngBounds(points), { ...overlayPadding(map), animate: false });
     // 경로 좌표는 주행 ID가 같으면 같다고 본다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, boundsKey]);
@@ -141,7 +150,8 @@ export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHo
   // 목록에서 고른 기록이 화면 밖이면 보이는 곳까지 부드럽게 옮긴다 (같은 줌이라 타일 요청이 적다).
   const selectedPos = located.find((r) => r.id === selectedId)?.position;
   useEffect(() => {
-    if (map && selectedPos) map.panInside(toLatLng(selectedPos), { ...PAN_PADDING, animate: true, duration: 0.35 });
+    if (map && selectedPos)
+      map.panInside(toLatLng(selectedPos), { ...overlayPadding(map), animate: true, duration: 0.35 });
   }, [map, selectedPos]);
 
   return (

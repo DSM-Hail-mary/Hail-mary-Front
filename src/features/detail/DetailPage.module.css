@@ -1,7 +1,9 @@
 .page {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  /* 넓은 화면: 한 화면에 딱 맞추고 오른쪽 카드만 스크롤 */
+  height: 100%;
+  min-height: 640px;
 }
 
 .center {
@@ -82,10 +84,12 @@
 
 /* 크롭 뷰어 888 : 카드 480 (1440 기준) */
 .body {
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(400px, 480px);
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 480px);
+  grid-template-rows: minmax(0, 1fr);
   gap: var(--pw-page-pad);
-  align-items: start;
   padding: var(--pw-page-pad);
 }
 
@@ -94,4 +98,55 @@
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  /* 포커스 링·그림자가 잘리지 않게 */
+  padding: 2px;
+  margin: -2px;
+}
+
+/* 좁은 화면: 뷰어 위, 카드 아래로 쌓고 페이지 전체가 스크롤 */
+@media (max-width: 1100px) {
+  .page {
+    height: auto;
+    min-height: 100%;
+    /* main(flex 세로)이 이 페이지를 화면 높이로 눌러 뷰어가 잘리지 않도록 */
+    flex-shrink: 0;
+  }
+
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+
+  .cards {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 760px) {
+  .subheader {
+    height: auto;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 8px 12px;
+  }
+
+  .vdivider,
+  .spacer {
+    display: none;
+  }
+
+  .poleId {
+    font-size: 20px;
+  }
+
+  .queue {
+    margin-left: auto;
+  }
+
+  .body {
+    gap: 16px;
+    padding: 12px;
+  }
 }
