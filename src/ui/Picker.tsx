@@ -23,6 +23,7 @@ export function Picker<T extends string>({
   footer,
   emptyText = '선택할 항목이 없습니다',
   align = 'left',
+  size = 'md',
 }: {
   label: string;
   value: T;
@@ -35,6 +36,8 @@ export function Picker<T extends string>({
   emptyText?: string;
   /** 펼침 목록을 트리거의 어느 쪽에 맞출지 (화면 오른쪽 끝이면 right). */
   align?: 'left' | 'right';
+  /** sm: 목록 필터 셀렉트 크기 (폭을 꽉 채우고 글자가 작다). */
+  size?: 'md' | 'sm';
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -82,7 +85,7 @@ export function Picker<T extends string>({
   return (
     <div
       ref={rootRef}
-      className={styles.root}
+      className={`${styles.root} ${size === 'sm' ? styles.sm : ''}`}
       onKeyDown={(e) => {
         if (e.key === 'Escape' && open) {
           e.stopPropagation();

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDriveDates, useDrives, useRecords } from '@/api/queries';
 import { formatDateLabel } from '@/domain/format';
-import { GRADE_LABEL, HAZARD_LABEL, STATUS_LABEL } from '@/domain/labels';
+import { GRADES, GRADE_LABEL, HAZARD_LABEL, STATUS_LABEL } from '@/domain/labels';
 import { applyFilters, countByGrade, exportableRecords, type RecordFilters } from '@/domain/records';
 import { Button } from '@/ui/Button';
 import { EmptyState, Loading } from '@/ui/EmptyState';
@@ -66,6 +66,16 @@ export function MapPage() {
         차량이 복귀해 Wi-Fi에 연결되면 그날 기록이 자동으로 들어옵니다. 다른 날짜를 보려면 상단의 기준 날짜를 바꾸세요.
       </EmptyState>
     );
+  } else if (filters.grades.length === 0) {
+    empty = (
+      <EmptyState
+        icon="filter"
+        title="표시할 등급을 고르세요"
+        action={<Button onClick={() => setFilters({ grades: GRADES })}>모든 등급 보기</Button>}
+      >
+        위의 위험·주의·양호 중 하나 이상을 체크하면 목록과 지도에 나타납니다.
+      </EmptyState>
+    );
   } else {
     empty = (
       <EmptyState
@@ -119,7 +129,7 @@ export function MapPage() {
 /** "위험 · 철거 완료" 처럼 걸려 있는 필터를 이어 붙인다. */
 function describeFilters(f: RecordFilters): string {
   const parts = [
-    f.grade !== 'all' ? GRADE_LABEL[f.grade] : null,
+    f.grades.length < 3 ? f.grades.map((g) => GRADE_LABEL[g]).join('·') : null,
     f.hazard !== 'all' ? HAZARD_LABEL[f.hazard] : null,
     f.status !== 'all' ? STATUS_LABEL[f.status] : null,
   ].filter(Boolean);

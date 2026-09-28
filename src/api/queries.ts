@@ -7,12 +7,12 @@ import { useApi } from './ApiProvider';
 
 /** 쿼리 키를 한곳에서 만든다. 무효화할 때도 이 함수를 쓴다. */
 export const queryKeys = {
-  all: ['polewatch'] as const,
+  all: ['hailmary'] as const,
   driveDates: () => [...queryKeys.all, 'drive-dates'] as const,
   drives: (date: string) => [...queryKeys.all, 'drives', date] as const,
   records: (date: string) => [...queryKeys.all, 'records', date] as const,
   record: (id: string) => [...queryKeys.all, 'record', id] as const,
-  deviceLog: (driveId: string) => [...queryKeys.all, 'device-log', driveId] as const,
+  deviceSession: () => [...queryKeys.all, 'device-session', 'latest'] as const,
   sync: () => ['sync'] as const,
 };
 
@@ -43,13 +43,9 @@ export function useRecord(id: string | undefined) {
   });
 }
 
-export function useDeviceLog(driveId: string | undefined) {
+export function useLatestDeviceSession() {
   const api = useApi();
-  return useQuery({
-    queryKey: queryKeys.deviceLog(driveId ?? ''),
-    queryFn: () => api.getDeviceLog(driveId!),
-    enabled: !!driveId,
-  });
+  return useQuery({ queryKey: queryKeys.deviceSession(), queryFn: () => api.getLatestDeviceSession() });
 }
 
 function findCachedRecord(qc: QueryClient, id: string): PoleRecord | undefined {
@@ -122,7 +118,10 @@ export function useSyncStatus() {
   const query = useQuery({
     queryKey: queryKeys.sync(),
     queryFn: () => api.getSyncStatus(),
-    refetchInterval: (q) => (q.state.data?.state === 'syncing' ? 1000 : config.syncPollMs),
+    // 진행 중이면 1초, 평소 5초. 서버가 응답하지 않으면(아직 API가 없거나 꺼짐) 1분으로 늦춰 요청을 줄인다.
+    refetchInterval: (q) =>
+      q.state.status === 'error' ? 60_000 : q.state.data?.state === 'syncing' ? 1000 : config.syncPollMs,
+    retry: false,
   });
 
   const state = query.data?.state;
@@ -138,13 +137,4 @@ export function useSyncStatus() {
   }, [state, lastSyncedAt, qc]);
 
   return query;
-}
-
-export function useRetrySync() {
-  const api = useApi();
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: () => api.retrySync(),
-    onSuccess: (status) => qc.setQueryData(queryKeys.sync(), status),
-  });
 }

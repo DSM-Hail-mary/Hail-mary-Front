@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { DeviceLog, Drive, DriveDate, PoleRecord, SyncStatus } from '@/domain/types';
+import type { Drive, DriveDate, PoleRecord, SyncStatus } from '@/domain/types';
 
 /**
  * HTTP 응답 검증. 서버가 계약과 다른 모양을 보내면 화면이 조용히 깨지는 대신
@@ -43,29 +43,12 @@ export const driveSchema = z.object({
   startedAt: z.string(),
   endedAt: z.string(),
   route: z.array(latLng),
-  unscannedRoads: z.array(z.array(latLng)),
 }) satisfies z.ZodType<Drive>;
 
 export const driveDateSchema = z.object({
   date: z.string(),
   recordCount: z.number().int().nonnegative(),
 }) satisfies z.ZodType<DriveDate>;
-
-export const deviceLogSchema = z.object({
-  driveId: z.string(),
-  deviceName: z.string(),
-  vehicleLabel: z.string(),
-  tempWarnC: z.number(),
-  samples: z.array(
-    z.object({
-      at: z.string(),
-      tempC: z.number(),
-      powerW: z.number(),
-      frameDrops: z.number().int().nonnegative(),
-      gpsFix: z.boolean(),
-    }),
-  ),
-}) satisfies z.ZodType<DeviceLog>;
 
 const lastSyncedAt = z.string().nullable();
 

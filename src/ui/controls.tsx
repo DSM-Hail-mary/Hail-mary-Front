@@ -1,4 +1,5 @@
-import { useId, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { Picker } from './Picker';
 import styles from './controls.module.css';
 
 export interface Option<T extends string> {
@@ -6,32 +7,33 @@ export interface Option<T extends string> {
   label: string;
 }
 
-/** 라벨이 위에 붙은 셀렉트 (목록 필터). */
+/**
+ * 라벨이 위에 붙은 셀렉트 (목록 필터). 브라우저 기본 드롭다운은 운영체제 스타일(흰 바탕)로 떠서
+ * 디자인과 맞지 않으므로, 기준 날짜와 같은 펼침 목록(Picker)을 쓴다.
+ */
 export function LabeledSelect<T extends string>({
   label,
   value,
   options,
   onChange,
+  align,
 }: {
   label: string;
   value: T;
   options: readonly Option<T>[];
   onChange: (value: T) => void;
+  align?: 'left' | 'right';
 }) {
-  const id = useId();
   return (
-    <div className={styles.field}>
-      <label htmlFor={id} className={styles.fieldLabel}>
-        {label}
-      </label>
-      <select id={id} className={styles.select} value={value} onChange={(e) => onChange(e.target.value as T)}>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </div>
+    <Picker
+      size="sm"
+      label={label}
+      value={value}
+      display={options.find((o) => o.value === value)?.label ?? ''}
+      options={options}
+      onChange={onChange}
+      align={align}
+    />
   );
 }
 

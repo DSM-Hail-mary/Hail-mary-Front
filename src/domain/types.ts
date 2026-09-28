@@ -1,5 +1,5 @@
 /**
- * PoleWatch 도메인 모델. 기능명세서 7장 "데이터 필드"를 옮긴 것이다.
+ * HailMary 도메인 모델. 기능명세서 7장 "데이터 필드"를 옮긴 것이다.
  * API 응답(`src/api/schemas.ts`)과 화면은 모두 이 타입을 기준으로 맞춘다.
  */
 
@@ -101,8 +101,6 @@ export interface Drive {
   startedAt: string; // ISO
   endedAt: string; // ISO
   route: LatLng[];
-  /** 이번 주행에서 지나가지 않은 도로 구간들. */
-  unscannedRoads: LatLng[][];
 }
 
 /** 기록이 있는 날짜 목록용 요약. */
@@ -111,21 +109,36 @@ export interface DriveDate {
   recordCount: number;
 }
 
-/** 기기 로그 1분 샘플. */
+/** 기기 로그 시계열 한 점 (서버 telemetry 배열의 같은 인덱스). */
 export interface DeviceSample {
-  at: string; // ISO, 해당 분의 시작
+  at: string; // ISO (시간대 포함)
   tempC: number;
   powerW: number;
   frameDrops: number;
   gpsFix: boolean;
 }
 
-export interface DeviceLog {
-  driveId: string;
-  deviceName: string;
-  vehicleLabel: string;
-  /** 온도 경고 기준. */
-  tempWarnC: number;
+/**
+ * 주행 1회의 기기 상태 (서버 GET /api/device/session/latest).
+ * 요약 지표는 Jetson이 세션 종료 때 계산해 보낸 값을 그대로 쓴다.
+ */
+export interface DeviceSession {
+  id: string;
+  device: string;
+  date: string; // YYYY-MM-DD
+  startedAt: string; // ISO
+  endedAt: string; // ISO
+  durationSec: number;
+  maxTemp: number;
+  avgTemp: number;
+  /** 스로틀링 기준 온도 (초과 시 위험). */
+  throttleTemp: number;
+  avgPower: number;
+  maxPower: number;
+  frameDrops: number;
+  totalFrames: number;
+  /** GPS 수신율 0~1. */
+  gpsReception: number;
   samples: DeviceSample[];
 }
 

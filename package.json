@@ -1,9 +1,9 @@
 {
-  "name": "polewatch-front",
+  "name": "hailmary-front",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "PoleWatch 사무실용 지도 대시보드 (전주 까치집·수목 위험 검수)",
+  "description": "HailMary 사무실용 지도 대시보드 (전주 까치집·수목 위험 검수)",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -25,6 +25,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.39.5",
     "@playwright/test": "^1.63.0",
     "@testing-library/dom": "^10.4.2",

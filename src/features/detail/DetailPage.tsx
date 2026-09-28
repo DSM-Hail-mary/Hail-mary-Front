@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { isNotFound } from '@/api/PoleWatchApi';
+import { isNotFound } from '@/api/HailMaryApi';
 import { useRecord, useRecords } from '@/api/queries';
 import { useNavMemory } from '@/app/navMemory';
 import { routes } from '@/app/routes';
@@ -31,7 +31,7 @@ export function DetailPage() {
           title={isNotFound(query.error) ? '기록을 찾을 수 없습니다' : '기록을 불러오지 못했습니다'}
           action={
             <ButtonLink to={routes.map()} variant="secondary">
-              지도·목록으로
+              지도로
             </ButtonLink>
           }
         >
@@ -68,7 +68,7 @@ function Detail({ record }: { record: PoleRecord }) {
       <div className={styles.subheader}>
         <ButtonLink variant="quiet" to={routes.map({ date, sel: record.id })}>
           <Icon name="chevronLeft" />
-          지도·목록
+          지도
         </ButtonLink>
         <span className={styles.vdivider} aria-hidden="true" />
         <h1 className={`mono ${styles.poleId} ${record.poleId ? '' : styles.unassigned}`}>

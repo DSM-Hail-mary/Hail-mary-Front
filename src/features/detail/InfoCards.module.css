@@ -88,7 +88,7 @@
 }
 
 .step[data-on][data-grade='warn'] .bar {
-  background: var(--pw-text);
+  background: var(--pw-inverse-bg);
 }
 
 .step[data-on][data-grade='ok'] .bar {
@@ -125,9 +125,9 @@
 }
 
 .reviewButton[aria-pressed='true'] {
-  background: var(--pw-text);
-  border-color: var(--pw-text);
-  color: var(--pw-text-on-light);
+  background: var(--pw-inverse-bg);
+  border-color: var(--pw-inverse-bg);
+  color: var(--pw-inverse-text);
 }
 
 .notice {
@@ -196,7 +196,7 @@
 }
 
 .progress {
-  background: var(--pw-text);
+  background: var(--pw-inverse-bg);
   transition: width 0.25s ease-out;
 }
 
@@ -245,8 +245,8 @@
 
 .stepButton[data-state='done'] .dot {
   border: none;
-  background: var(--pw-text);
-  color: var(--pw-text-on-light);
+  background: var(--pw-inverse-bg);
+  color: var(--pw-inverse-text);
 }
 
 .stepButton[data-state='current'] {

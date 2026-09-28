@@ -43,10 +43,18 @@ describe('applyFilters', () => {
   });
 
   it('등급·유형·처리 상태를 모두 적용한다', () => {
-    expect(applyFilters(records, { ...DEFAULT_FILTERS, grade: 'warn' }).map((r) => r.id)).toEqual(['late']);
+    expect(applyFilters(records, { ...DEFAULT_FILTERS, grades: ['warn'] }).map((r) => r.id)).toEqual(['late']);
     expect(applyFilters(records, { ...DEFAULT_FILTERS, hazard: 'nest' }).map((r) => r.id)).toEqual(['early']);
     expect(applyFilters(records, { ...DEFAULT_FILTERS, status: 'new' }).map((r) => r.id)).toEqual(['early']);
-    expect(applyFilters(records, { ...DEFAULT_FILTERS, grade: 'danger', status: 'removed' })).toEqual([]);
+    expect(applyFilters(records, { ...DEFAULT_FILTERS, grades: ['danger'], status: 'removed' })).toEqual([]);
+  });
+
+  it('등급은 여러 개를 함께 고를 수 있고, 하나도 안 고르면 비어 있다', () => {
+    expect(applyFilters(records, { ...DEFAULT_FILTERS, grades: ['danger', 'ok'] }).map((r) => r.id)).toEqual([
+      'early',
+      'ok',
+    ]);
+    expect(applyFilters(records, { ...DEFAULT_FILTERS, grades: [] })).toEqual([]);
   });
 
   it('처리 상태 필터는 양호(상태 없음)를 제외한다', () => {

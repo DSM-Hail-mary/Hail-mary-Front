@@ -2,8 +2,6 @@ import { BASIS_LEVEL_GRADE } from '@/domain/labels';
 import type {
   BasisLevel,
   Crop,
-  DeviceLog,
-  DeviceSample,
   Drive,
   GradeBasis,
   HazardType,
@@ -12,6 +10,8 @@ import type {
   ProcessStatus,
   ReviewResult,
 } from '@/domain/types';
+import { serverDeviceSessionSchema, toDeviceSession } from '../deviceSession';
+import latestSessionFixture from '../__fixtures__/deviceSessionLatest.json';
 import { CROP_VIEWS, mockCrop, mockThumbnail } from './images';
 import type { MockDataset } from './mockApi';
 
@@ -262,38 +262,6 @@ const ROUTE: LatLng[] = [
   { lat: 35.0261, lng: 126.779 },
 ];
 
-const UNSCANNED: LatLng[][] = [
-  [
-    { lat: 35.0151, lng: 126.68 },
-    { lat: 35.0151, lng: 126.6918 },
-  ],
-  [
-    { lat: 35.0151, lng: 126.692 },
-    { lat: 35.0165, lng: 126.73 },
-    { lat: 35.0172, lng: 126.78 },
-  ],
-  [
-    { lat: 35.0041, lng: 126.692 },
-    { lat: 35.0041, lng: 126.78 },
-  ],
-  [
-    { lat: 35.0261, lng: 126.73 },
-    { lat: 35.0041, lng: 126.73 },
-  ],
-  [
-    { lat: 35.0359, lng: 126.6919 },
-    { lat: 35.0261, lng: 126.6919 },
-  ],
-  [
-    { lat: 35.0261, lng: 126.76 },
-    { lat: 35.0041, lng: 126.76 },
-  ],
-  [
-    { lat: 35.0359, lng: 126.76 },
-    { lat: 35.042, lng: 126.76 },
-  ],
-];
-
 function buildDrives(): Drive[] {
   return DRIVES.map((d) => ({
     id: d.id,
@@ -301,50 +269,7 @@ function buildDrives(): Drive[] {
     startedAt: iso(d.date, d.start),
     endedAt: iso(d.date, d.end),
     route: ROUTE,
-    unscannedRoads: UNSCANNED,
   }));
-}
-
-/** 09-27 주행 기기 로그 (Device.dc.html 샘플). 다른 날은 여기서 조금씩 흔든다. */
-const BASE_TEMP = [48, 52, 55, 58, 60, 62, 63, 65, 66, 67, 68, 69, 70, 70, 71, 72, 72, 73, 73, 74, 74, 73];
-const BASE_POWER = [
-  5.8, 7.2, 7.9, 8.1, 8.4, 8.3, 8.6, 8.8, 8.5, 8.7, 8.9, 9.1, 8.8, 8.9, 9.0, 9.2, 9.1, 8.9, 9.0, 9.3, 9.1, 6.2,
-];
-const BASE_DROPS = [0, 1, 0, 2, 0, 0, 3, 1, 0, 0, 4, 2, 0, 1, 0, 0, 6, 2, 0, 1, 0, 0];
-
-/** 결정적 의사난수 (같은 시드 → 같은 값). */
-function seeded(seed: number) {
-  let s = seed;
-  return () => {
-    s = (s * 1664525 + 1013904223) % 4294967296;
-    return s / 4294967296;
-  };
-}
-
-function buildDeviceLogs(drives: Drive[]): DeviceLog[] {
-  return drives.map((drive, di) => {
-    const minutes = Math.round((Date.parse(drive.endedAt) - Date.parse(drive.startedAt)) / 60_000) + 1;
-    const isBase = drive.date === D27;
-    const rand = seeded(di + 7);
-    const samples: DeviceSample[] = Array.from({ length: minutes }, (_, i) => {
-      const bi = Math.min(i, BASE_TEMP.length - 1);
-      const jitter = isBase ? 0 : rand() * 4 - 2;
-      return {
-        at: new Date(Date.parse(drive.startedAt) + i * 60_000).toISOString(),
-        tempC: Math.round(BASE_TEMP[bi]! + jitter),
-        powerW: Math.round((BASE_POWER[bi]! + jitter / 5) * 10) / 10,
-        frameDrops: isBase ? BASE_DROPS[bi]! : Math.max(0, Math.round(BASE_DROPS[bi]! + jitter)),
-        gpsFix: isBase ? i !== 20 : true,
-      };
-    });
-    return {
-      driveId: drive.id,
-      deviceName: 'Jetson Orin Nano',
-      vehicleLabel: '차량 1',
-      tempWarnC: 80,
-      samples,
-    };
-  });
 }
 
 export function createSampleDataset(): MockDataset {
@@ -352,7 +277,8 @@ export function createSampleDataset(): MockDataset {
   return {
     records: buildRecords(),
     drives,
-    deviceLogs: buildDeviceLogs(drives),
+    // 기기 상태: 서버 명세 응답 예시를 같은 변환기로 읽는다 (실제 서버와 같은 경로)
+    deviceSession: toDeviceSession(serverDeviceSessionSchema.parse(latestSessionFixture)),
     lastSyncedAt: iso(D27, '18:42:00'),
   };
 }

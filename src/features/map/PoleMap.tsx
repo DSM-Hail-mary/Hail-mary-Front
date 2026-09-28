@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { CircleMarker, MapContainer, Marker, Polyline, TileLayer, Tooltip } from 'react-leaflet';
+import { CircleMarker, MapContainer, Marker, Polyline, ScaleControl, TileLayer, Tooltip } from 'react-leaflet';
 import { config } from '@/config';
 import { formatHourMinute } from '@/domain/format';
 import { GRADE_LABEL, hazardLabel, poleIdLabel } from '@/domain/labels';
@@ -167,9 +167,10 @@ export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHo
         zoomControl={false}
         attributionControl
         keyboard
-        // 휠 줌: 단계에 끊기지 않고 굴린 만큼 조금씩 (연속 줌). 값이 클수록 한 칸에 덜 움직인다.
+        // 휠 줌: 단계에 끊기지 않고 굴린 만큼 (연속 줌). 마우스 휠 한 칸(약 100px) ≈ 0.8단계.
+        // 값이 클수록 한 칸에 덜 움직인다 (Leaflet 기본 60은 너무 크게, 240은 거의 안 움직였다).
         zoomSnap={0}
-        wheelPxPerZoomLevel={240}
+        wheelPxPerZoomLevel={120}
         wheelDebounceTime={20}
         // +/− 버튼은 반 단계씩
         zoomDelta={0.5}
@@ -192,6 +193,8 @@ export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHo
             eventHandlers={tileHandlers}
           />
         ))}
+        {/* 축척 막대 (미터법). 위치는 범례 바로 위 — PoleMap.module.css */}
+        <ScaleControl position="bottomleft" imperial={false} maxWidth={120} />
         {drives.map((d) => (
           <DriveLayer key={d.id} drive={d} />
         ))}
@@ -243,7 +246,7 @@ export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHo
 }
 
 const BASE_LAYERS = getBaseLayers();
-const LAYER_STORAGE_KEY = 'polewatch.baseLayer';
+const LAYER_STORAGE_KEY = 'hailmary.baseLayer';
 
 /** 일반/위성 선택. 다음에 열어도 유지되도록 localStorage에 둔다 (못 쓰면 기본값). */
 function useBaseLayerChoice() {
@@ -292,13 +295,6 @@ function DriveLayer({ drive }: { drive: Drive }) {
   const end = route.at(-1);
   return (
     <>
-      {drive.unscannedRoads.map((road, i) => (
-        <Polyline
-          key={i}
-          positions={road.map(toLatLng)}
-          pathOptions={{ className: styles.unscanned, weight: 3, dashArray: '7 6', interactive: false }}
-        />
-      ))}
       <Polyline
         positions={route}
         pathOptions={{
@@ -349,12 +345,6 @@ function Legend() {
             <path d="M2 4h24" stroke="var(--pw-map-route)" strokeWidth="4" strokeLinecap="round" />
           </svg>
           주행 경로
-        </span>
-        <span className={styles.legendItem}>
-          <svg width="28" height="8" viewBox="0 0 28 8" aria-hidden="true">
-            <path d="M1 4h26" stroke="var(--pw-map-unscanned)" strokeWidth="3" strokeDasharray="6 4" />
-          </svg>
-          미점검 도로
         </span>
       </div>
       <div className={styles.legendRow}>

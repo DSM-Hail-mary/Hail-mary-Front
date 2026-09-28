@@ -12,7 +12,7 @@ interface NavMemory {
   lastRecordId: string | null;
 }
 
-const STORAGE_KEY = 'polewatch.nav';
+const STORAGE_KEY = 'hailmary.nav';
 
 function load(): NavMemory {
   try {

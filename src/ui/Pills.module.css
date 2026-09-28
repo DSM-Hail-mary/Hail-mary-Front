@@ -51,8 +51,8 @@
 .fp {
   padding: 1px 6px;
   border-radius: var(--pw-radius-pill);
-  background: var(--pw-text);
-  color: var(--pw-text-on-light);
+  background: var(--pw-inverse-bg);
+  color: var(--pw-inverse-text);
   font-size: var(--pw-fs-caption);
   font-weight: 700;
   white-space: nowrap;

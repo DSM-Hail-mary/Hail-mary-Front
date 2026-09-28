@@ -4,7 +4,7 @@ import { DAY, expect, rec, summaryCard, test } from './fixtures';
 const SCREENS = [
   { name: '지도', path: `/#/map?date=${DAY}&sel=${rec('3501-12669-N')}`, ready: '[data-record-id]' },
   { name: '상세', path: `/#/poles/${rec('3501-12669-N')}`, ready: '[aria-label="크롭 뷰어"]' },
-  { name: '기기', path: '/#/device?drive=drive-20260927-1', ready: '[aria-label^="온도 추이"]' },
+  { name: '기기', path: '/#/device', ready: '[aria-label^="온도 추이"]' },
 ];
 
 const VIEWPORTS = [
@@ -59,7 +59,7 @@ test.describe('반응형: 화면을 꽉 채우고 가로로 넘치지 않는다'
 
   test('넓은 화면: 기기 상태 차트가 남는 높이를 채운다', async ({ page }) => {
     await page.setViewportSize({ width: 2560, height: 1440 });
-    await page.goto('/#/device?drive=drive-20260927-1');
+    await page.goto('/#/device');
     const chart = page.getByRole('img', { name: /온도 추이/ });
     await expect.poll(async () => (await chart.boundingBox())?.height ?? 0).toBeGreaterThan(300);
     expect((await layout(page)).mainScrolls).toBe(false);
@@ -84,8 +84,10 @@ test.describe('반응형: 화면을 꽉 채우고 가로로 넘치지 않는다'
       .toBe(Math.round(mapBox.y + mapBox.height));
     // 선택 행으로 페이지가 밀려 내려가지 않는다
     expect(await page.evaluate(() => document.querySelector('main')!.scrollTop)).toBe(0);
-    for (const tab of ['지도·목록', '전주 상세·검수', '기기 상태']) {
-      await expect(page.getByRole('navigation', { name: '화면' }).getByRole('link', { name: tab })).toBeInViewport();
+    for (const tab of ['지도', '상세 검수', '기기 상태']) {
+      await expect(
+        page.getByRole('navigation', { name: '화면' }).getByRole('link', { name: tab, exact: true }),
+      ).toBeInViewport();
     }
   });
 

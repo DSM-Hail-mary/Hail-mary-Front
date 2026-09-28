@@ -60,27 +60,6 @@
   color: var(--pw-danger-line);
 }
 
-/* 날짜 직접 선택 */
-.dateInputRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: var(--pw-fs-small);
-  color: var(--pw-text-muted);
-}
-
-.dateInput {
-  height: 36px;
-  padding: 0 8px;
-  border: 1px solid var(--pw-control-border);
-  border-radius: var(--pw-radius-control);
-  background: var(--pw-bg-page);
-  color-scheme: dark;
-  font-family: var(--pw-font-mono);
-  font-size: var(--pw-fs-small);
-}
-
 @media (max-width: 1100px) {
   .kpiBar {
     gap: 20px;

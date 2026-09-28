@@ -126,7 +126,7 @@
 }
 
 .fix {
-  background: var(--pw-text);
+  background: var(--pw-inverse-bg);
 }
 
 .noFix {

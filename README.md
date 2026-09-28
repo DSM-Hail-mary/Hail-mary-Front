@@ -1,21 +1,22 @@
-# PoleWatch Front
+# HailMary Front
 
 복귀 후 사무실에서 보는 **전주 위험(까치집·수목) 지도 대시보드**입니다. 차량의 Jetson이 오프라인으로
 기록한 판정 결과를 Wi-Fi 동기화 후 지도·목록으로 보고, 상세 화면에서 판정을 검수하고 처리 상태를 관리합니다.
 
 - 기능 명세: [`docs/기능명세서.md`](docs/기능명세서.md)
+- 디자인·기획 원본(`docs/design/`, 기능명세서)과 로고 PNG는 옛 가칭 **PoleWatch**로 되어 있습니다. 앱 화면의 이름은 HailMary입니다.
 - 디자인 핸드오프: [`docs/design/DESIGN.md`](docs/design/DESIGN.md), 토큰 `docs/design/tokens.css`, 아트보드 `docs/design/artboards/`
 - 서버 API 계약(제안): [`docs/API.md`](docs/API.md)
 
-> 2026-09-28: 이전 M11 에너지 대시보드(순수 HTML/JS)를 PoleWatch로 교체했습니다. 이전 코드는 git 히스토리(`15ea6d6`)에 있습니다.
+> 2026-09-28: 이전 M11 에너지 대시보드(순수 HTML/JS)를 이 대시보드로 교체했습니다. 이전 코드는 git 히스토리(`15ea6d6`)에 있습니다.
 
 ## 화면
 
 | 경로 | 화면 |
 |---|---|
-| `#/map?date=&grade=&hazard=&status=&sort=&sel=` | A. 지도·목록 — KPI, 지도(경로·미점검 도로·마커·요약 카드), 목록(필터·정렬·CSV·페이지) |
+| `#/map?date=&grade=&hazard=&status=&sort=&sel=` | A. 지도·목록 — KPI, 지도(주행 경로·마커·요약 카드), 목록(필터·정렬·CSV·페이지) |
 | `#/poles/:recordId` | B. 전주 상세·검수 — 크롭 뷰어(검출 박스·확대/이동), 기록 정보, 판정 검수, 처리 상태, 이력 비교 |
-| `#/device?drive=` | C. 기기 상태 — 온도·전력·프레임 드롭 차트, GPS 수신 띠 |
+| `#/device` | C. 기기 상태 — 가장 최근 주행 세션: 요약 카드 4개, 온도·전력·프레임 드롭 차트, GPS 수신 띠 |
 
 지도 화면 상태는 URL에 들어 있어 새로고침·공유·뒤로 가기에도 그대로 남습니다.
 
@@ -35,7 +36,8 @@ npm run check      # 타입 검사 + ESLint + 단위 테스트
 npm run e2e        # E2E 기능 테스트 (Playwright, 처음 한 번 `npx playwright install --only-shell chromium`)
 ```
 
-E2E(`tests/e2e/`)는 세 화면의 모든 동작(필터·선택·검수·처리 상태·CSV·차트·동기화·탭 기억)과
+E2E(`tests/e2e/`)는 배포용 빌드를 띄워 세 화면의 모든 동작(필터·선택·검수·처리 상태·CSV·차트·테마·탭 기억),
+기기 상태 서버 API 연동(명세 응답·404·500·형식 오류), 접근성·명도 대비(axe-core, Black/White), 그리고
 반응형 레이아웃(390px~2560px, 7가지 크기)을 검사합니다. 지도 타일 요청은 테스트 안에서 가짜 응답으로
 막아 외부 타일 서버를 부르지 않습니다.
 
@@ -55,12 +57,12 @@ E2E(`tests/e2e/`)는 세 화면의 모든 동작(필터·선택·검수·처리 
 |---|---|---|
 | `VITE_API_MODE` | `mock` | `mock`: 서버 없이 빈 상태로 실행 / `http`: 서버 API |
 | `VITE_API_BASE` | (빈 값) | `http` 모드 서버 주소. 비우면 같은 origin |
+| `VITE_DEVICE_API_BASE` | (빈 값) | 기기 상태만 이 서버에서 받기 (예: `http://127.0.0.1:8000`, `GET /api/device/session/latest`) |
 | `VITE_VWORLD_KEY` | (빈 값) | VWorld 배경지도 인증키. 있으면 야간·흑백·컬러·위성 4가지 모드 |
 | `VITE_MAP_TILE_URL` | OSM 표준 타일 | Leaflet 타일 URL 템플릿. **API 키 없이 동작** |
 | `VITE_MAP_TILE_DARKEN` | 타일 URL 미지정 시 `true` | 밝은 타일을 CSS 필터로 무채색 다크로 |
 | `VITE_MAP_TILE_CACHE` | `true` | 타일을 서비스 워커로 7일 캐시 (`public/tile-sw.js`) |
 | `VITE_MOCK_SAMPLE_DATA` | `false` | 테스트용 예시 데이터(가짜 전주) 사용. 자동 테스트만 켠다 |
-| `VITE_MOCK_SYNC` | `done` | mock 동기화 초기 상태 `done`/`syncing`/`failed` (상태 화면 확인용) |
 
 서버 API가 생기기 전까지(`mock` 모드) 앱은 **빈 상태**로 뜹니다 — 가짜 전주를 보여 주지 않습니다.
 자동 테스트용 예시 데이터(`src/api/mock/sampleData.ts`, 2026-09-13·20·27 주행)는 `VITE_MOCK_SAMPLE_DATA=true`일 때만
@@ -95,17 +97,18 @@ E2E(`tests/e2e/`)는 세 화면의 모든 동작(필터·선택·검수·처리 
 
 ```
 src/
-  domain/      순수 로직 (타입, 라벨, 필터·집계·정렬, CSV, 기기 로그 요약, 시각 포맷) + 테스트
-  api/         PoleWatchApi 인터페이스, HTTP 구현(zod 검증), mock 구현, TanStack Query 훅
+  domain/      순수 로직 (타입, 라벨, 필터·집계·정렬, CSV, 기기 로그 GPS 구간, 시각 포맷) + 테스트
+  api/         HailMaryApi 인터페이스, HTTP 구현(zod 검증), mock 구현, TanStack Query 훅
   ui/          공용 컴포넌트 (등급 글리프, 필, 버튼, 셀렉트/세그먼트/스위치, 카드, 빈 상태, 피커, 차트)
   features/    화면별 컴포넌트 (map / detail / device)
-  app/         라우터, 상단 바, 동기화 표시, 탭 이동 기억
+  app/         라우터, 상단 바(로고·탭·Black/White 테마), 동기화 감시, 탭 이동 기억
   styles/      tokens.css(디자인 핸드오프 원본) + tokens.app.css(아트보드 추가 값) + base.css
 ```
 
 - 화면 문구는 `src/domain/labels.ts`, 색·치수는 CSS 변수(`--pw-*`)에서만 바꿉니다.
 - 서버 데이터는 TanStack Query로 캐시하고, 처리 상태·검수 변경은 낙관적으로 바로 반영한 뒤 실패하면 되돌립니다.
-- 동기화가 "진행 중 → 완료"로 바뀌면 데이터를 모두 다시 받습니다.
+- 동기화가 "진행 중 → 완료"로 바뀌면 데이터를 모두 다시 받습니다 (화면 표시는 없음, 서버가 응답하지 않으면 1분 간격으로 늦춤).
+- 테마: 상단 바 Black / White. 색은 모두 CSS 변수라 `src/styles/tokens.app.css`의 `:root[data-theme='light']`에서 밝은 테마 값을 바꿉니다.
 - 스타일은 CSS Modules. 색은 새 hue를 추가하지 않습니다 (DESIGN.md "색").
 
 ## 미정 사항 (명세서 10장)

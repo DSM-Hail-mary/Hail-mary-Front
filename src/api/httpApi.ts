@@ -1,26 +1,41 @@
 import { z } from 'zod';
 import type { PoleRecord } from '@/domain/types';
-import { ApiError, type PoleWatchApi } from './PoleWatchApi';
-import { deviceLogSchema, driveDateSchema, driveSchema, poleRecordSchema, syncStatusSchema } from './schemas';
+import { ApiError, isNotFound, type HailMaryApi } from './HailMaryApi';
+import { serverDeviceSessionSchema, toDeviceSession } from './deviceSession';
+import { driveDateSchema, driveSchema, poleRecordSchema, syncStatusSchema } from './schemas';
 
 /**
  * 백엔드 REST 구현. 경로와 응답 모양은 `docs/API.md` 참고.
  * 이미지 URL이 상대 경로면 API 주소 기준으로 바꿔 준다.
  */
-export function createHttpApi(baseUrl: string): PoleWatchApi {
+export function createHttpApi(baseUrl: string): HailMaryApi {
   const base = baseUrl.replace(/\/+$/, '');
 
   const resolveUrl = (url: string) =>
     /^(https?:|data:|blob:)/.test(url) || !base ? url : `${base}/${url.replace(/^\/+/, '')}`;
 
   async function request<T>(schema: z.ZodType<T>, path: string, init?: RequestInit): Promise<T> {
-    const res = await fetch(`${base}${path}`, {
-      ...init,
-      headers: { Accept: 'application/json', ...(init?.body ? { 'Content-Type': 'application/json' } : {}) },
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${base}${path}`, {
+        ...init,
+        headers: { Accept: 'application/json', ...(init?.body ? { 'Content-Type': 'application/json' } : {}) },
+      });
+    } catch {
+      // 서버가 꺼져 있거나 주소가 틀리면 fetch가 "Failed to fetch"로 실패한다 → 사람이 읽을 말로
+      throw new ApiError(0, `서버에 연결할 수 없습니다 (${base || window.location.origin})`);
+    }
     if (!res.ok) {
+      // 서버 오류 본문이 {"detail": "..."} 이면 그 문구를 쓴다 (FastAPI 형식)
       const text = await res.text().catch(() => '');
-      throw new ApiError(res.status, text || `${res.status} ${res.statusText}`);
+      let detail = text;
+      try {
+        const body = JSON.parse(text) as { detail?: unknown };
+        if (typeof body.detail === 'string') detail = body.detail;
+      } catch {
+        // JSON이 아니면 본문 그대로
+      }
+      throw new ApiError(res.status, `서버 오류 ${res.status}${detail ? `: ${detail}` : ''}`);
     }
     const parsed = schema.safeParse(await res.json());
     if (!parsed.success) {
@@ -54,7 +69,15 @@ export function createHttpApi(baseUrl: string): PoleWatchApi {
           body: JSON.stringify(patch),
         }),
       ),
-    getDeviceLog: (driveId) => request(deviceLogSchema, `/api/v1/drives/${encodeURIComponent(driveId)}/device-log`),
+    getLatestDeviceSession: async () => {
+      try {
+        return toDeviceSession(await request(serverDeviceSessionSchema, '/api/device/session/latest'));
+      } catch (e) {
+        // 명세: 세션 기록이 없으면 404 {"detail": "세션 기록 없음"}
+        if (isNotFound(e)) return null;
+        throw e;
+      }
+    },
     getSyncStatus: () => request(syncStatusSchema, '/api/v1/sync'),
     retrySync: () => request(syncStatusSchema, '/api/v1/sync/retry', { method: 'POST' }),
   };

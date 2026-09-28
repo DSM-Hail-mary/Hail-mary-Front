@@ -23,7 +23,7 @@
 }
 
 .primary:hover {
-  background: #ffdb4d;
+  background: var(--pw-brand-hover);
 }
 
 .secondary {
@@ -33,7 +33,7 @@
 }
 
 .secondary:hover:not(:disabled) {
-  background: #242424;
+  background: var(--pw-hover);
 }
 
 .secondary:disabled {
@@ -43,12 +43,12 @@
 }
 
 .inverse {
-  background: var(--pw-text);
-  color: var(--pw-text-on-light);
+  background: var(--pw-inverse-bg);
+  color: var(--pw-inverse-text);
 }
 
 .inverse:hover {
-  background: #ffffff;
+  background: var(--pw-inverse-hover);
 }
 
 .ghost {
@@ -58,7 +58,7 @@
 }
 
 .ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--pw-hover-ghost);
 }
 
 .ghost:disabled {
@@ -74,7 +74,7 @@
 }
 
 .quiet:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--pw-hover-ghost);
   color: var(--pw-text);
 }
 

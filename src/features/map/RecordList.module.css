@@ -79,7 +79,7 @@
 
 .row:hover,
 .row[data-hovered] {
-  background: #242424;
+  background: var(--pw-hover);
 }
 
 .row[aria-pressed='true'] {

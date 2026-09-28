@@ -1,22 +1,22 @@
-import { STATUS_FLOW } from './labels';
+import { GRADES, STATUS_FLOW } from './labels';
 import type { Grade, GradeBasis, HazardType, PoleRecord, ProcessStatus } from './types';
 
 type GradeBasisMetric = GradeBasis['metric'];
 
-export type GradeFilter = Grade | 'all';
 export type HazardFilter = HazardType | 'all';
 export type StatusFilter = ProcessStatus | 'all';
 export type SortKey = 'time' | 'priority';
 
 export interface RecordFilters {
-  grade: GradeFilter;
+  /** 보여 줄 등급 (체크한 것만). 비어 있으면 아무것도 안 보인다. */
+  grades: readonly Grade[];
   hazard: HazardFilter;
   status: StatusFilter;
   sort: SortKey;
 }
 
 export const DEFAULT_FILTERS: RecordFilters = {
-  grade: 'all',
+  grades: GRADES,
   hazard: 'all',
   status: 'all',
   sort: 'time',
@@ -51,14 +51,14 @@ export function countByGrade(
 }
 
 export function matchesFilters(record: PoleRecord, f: RecordFilters): boolean {
-  if (f.grade !== 'all' && record.grade !== f.grade) return false;
+  if (!f.grades.includes(record.grade)) return false;
   if (f.hazard !== 'all' && record.hazard !== f.hazard) return false;
   if (f.status !== 'all' && record.status !== f.status) return false;
   return true;
 }
 
 export function hasActiveFilters(f: RecordFilters): boolean {
-  return f.grade !== 'all' || f.hazard !== 'all' || f.status !== 'all';
+  return f.grades.length < GRADES.length || f.hazard !== 'all' || f.status !== 'all';
 }
 
 const GRADE_WEIGHT: Record<Grade, number> = { danger: 300, warn: 200, ok: 0 };

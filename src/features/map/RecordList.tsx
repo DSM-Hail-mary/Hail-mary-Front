@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 
 import { config } from '@/config';
 import { downloadCsv, recordsToCsv } from '@/domain/csv';
 import { formatTime } from '@/domain/format';
-import { GRADE_LABEL, HAZARD_LABEL, STATUS_LABEL, poleIdLabel } from '@/domain/labels';
+import { GRADES, GRADE_LABEL, HAZARD_LABEL, STATUS_LABEL, poleIdLabel } from '@/domain/labels';
 import {
   isFalsePositive,
   pageOf,
@@ -13,7 +13,7 @@ import {
   type SortKey,
   type StatusFilter,
 } from '@/domain/records';
-import type { PoleRecord } from '@/domain/types';
+import type { Grade, PoleRecord } from '@/domain/types';
 import { Button } from '@/ui/Button';
 import { LabeledSelect, SegmentedControl, type Option } from '@/ui/controls';
 import { GradeGlyph } from '@/ui/GradeGlyph';
@@ -121,7 +121,7 @@ export function RecordList({
     );
   };
 
-  const exportCsv = () => downloadCsv(`polewatch_${date}.csv`, recordsToCsv(exportRecords));
+  const exportCsv = () => downloadCsv(`hailmary_${date}.csv`, recordsToCsv(exportRecords));
 
   return (
     <section aria-label="전주 목록" className={styles.panel}>
@@ -146,9 +146,10 @@ export function RecordList({
           <>
             <SegmentedControl
               label="등급 필터"
-              value={filters.grade}
-              onChange={(grade) => {
-                onFiltersChange({ grade });
+              value={gradeSegmentValue(filters.grades)}
+              onChange={(v) => {
+                // 세그먼트 칸은 'all' 또는 등급만 보낸다 ('' 는 선택 표시용 값)
+                onFiltersChange({ grades: v === 'all' || v === '' ? GRADES : [v] });
                 setPage(1);
               }}
               segments={[
@@ -178,6 +179,7 @@ export function RecordList({
                 }}
               />
               <LabeledSelect
+                align="right"
                 label="정렬"
                 value={filters.sort}
                 options={SORT_OPTIONS}
@@ -231,6 +233,12 @@ export function RecordList({
       )}
     </section>
   );
+}
+
+/** 등급 세그먼트 선택값: 전부면 '전체', 하나면 그 등급. (URL로 여러 개가 오면 어느 칸도 눌리지 않는다.) */
+function gradeSegmentValue(grades: readonly Grade[]): Grade | 'all' | '' {
+  if (grades.length === GRADES.length) return 'all';
+  return grades.length === 1 ? grades[0]! : '';
 }
 
 function RecordRow({

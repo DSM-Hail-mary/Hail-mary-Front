@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { DAY, expect, gradeSegment, kpi, markers, openMap, rec, rows, summaryCard, test } from './fixtures';
+import { DAY, choose, expect, gradeSegment, kpi, markers, openMap, rec, rows, summaryCard, test } from './fixtures';
 
 test.describe('A. 지도·목록', () => {
   test('KPI는 등급별 집계, 목록·마커 수가 맞다 (위치 없는 기록은 지도에 없음)', async ({ page }) => {
@@ -22,6 +22,29 @@ test.describe('A. 지도·목록', () => {
     // 날짜 변경은 히스토리에 남아 뒤로 가기가 된다
     await page.goBack();
     await expect(page.getByText('기록된 전주가 없습니다')).toBeVisible();
+  });
+
+  test('기준 날짜: 달력 — 기록 있는 날 표시, 방향키 이동, 날짜 고르기, 달 이동', async ({ page }) => {
+    await openMap(page);
+    await page.getByRole('button', { name: /기준 날짜/ }).click();
+    const cal = page.getByRole('group', { name: '2026년 9월' });
+    await expect(cal.getByRole('button', { name: '2026년 9월 27일, 기록 13건' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(cal.getByRole('button', { name: '2026년 9월 13일, 기록 7건' })).toBeVisible();
+    await cal.getByRole('button', { name: /2026년 9월 27일/ }).focus();
+    await page.keyboard.press('ArrowLeft');
+    await expect(cal.getByRole('button', { name: /2026년 9월 26일/ })).toBeFocused();
+    await page.keyboard.press('ArrowUp');
+    await expect(cal.getByRole('button', { name: /2026년 9월 19일/ })).toBeFocused();
+    await page.getByRole('button', { name: '다음 달' }).click();
+    await expect(page.getByRole('group', { name: '2026년 10월' })).toBeVisible();
+    await page.getByRole('button', { name: '이전 달' }).click();
+    await page.getByRole('button', { name: /2026년 9월 13일/ }).click();
+    await expect(page).toHaveURL(/date=2026-09-13/);
+    await expect(rows(page)).toHaveCount(7);
+    await expect(page.getByRole('listbox', { name: '기준 날짜' })).toBeHidden();
   });
 
   test('기준 날짜 선택 목록으로 다른 주행을 연다', async ({ page }) => {
@@ -48,23 +71,42 @@ test.describe('A. 지도·목록', () => {
 
   test('유형·처리 상태 필터, 결과 없음 → 필터 초기화', async ({ page }) => {
     await openMap(page);
-    await page.getByLabel('위험 유형').selectOption('tree');
+    await choose(page, '위험 유형', '수목');
     await expect(rows(page)).toHaveCount(2);
-    await page.getByLabel('위험 유형').selectOption('all');
-    await page.getByLabel('처리 상태').selectOption('new');
+    await choose(page, '위험 유형', '전체');
+    await choose(page, '처리 상태', '신규');
     await expect(rows(page)).toHaveCount(4);
     await gradeSegment(page, '위험').click();
-    await page.getByLabel('처리 상태').selectOption('removed');
+    await choose(page, '처리 상태', '철거 완료');
     await expect(page.getByText('조건에 맞는 전주가 없습니다')).toBeVisible();
     await expect(page.getByText('위험 · 철거 완료 조합에 해당하는 기록이 없습니다.')).toBeVisible();
     await page.getByRole('button', { name: '필터 초기화' }).click();
     await expect(rows(page)).toHaveCount(13);
   });
 
+  test('목록 필터 드롭다운은 자체 디자인 (브라우저 기본 select 아님), Esc로 닫힘', async ({ page }) => {
+    await openMap(page);
+    await expect(page.locator('select')).toHaveCount(0);
+    await page.getByRole('button', { name: /^처리 상태/ }).click();
+    const list = page.getByRole('listbox', { name: '처리 상태' });
+    await expect(list.getByRole('option')).toHaveText(['전체', '신규', '확인', '철거 예정', '철거 완료']);
+    await expect(list.getByRole('option', { name: '전체' })).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('Escape');
+    await expect(list).toBeHidden();
+  });
+
+  test('등급 필터 URL에 여러 등급이 와도 동작 (grade=danger,warn)', async ({ page }) => {
+    await openMap(page, `date=${DAY}&grade=danger,warn`);
+    await expect(rows(page)).toHaveCount(7);
+    await gradeSegment(page, '전체').click();
+    await expect(rows(page)).toHaveCount(13);
+    await expect(page).not.toHaveURL(/grade=/);
+  });
+
   test('정렬: 기록 시각순 / 우선순위순', async ({ page }) => {
     await openMap(page);
     await expect(rows(page).first()).toContainText('3500-12668-E');
-    await page.getByLabel('정렬').selectOption('priority');
+    await choose(page, '정렬', '우선순위순');
     // 위험 + 커지는 추세 + 연속 발견이 가장 높다
     await expect(rows(page).first()).toContainText('3501-12669-N');
     await expect(rows(page).last()).toContainText('이상 없음');
@@ -149,7 +191,7 @@ test.describe('A. 지도·목록', () => {
       page.waitForEvent('download'),
       page.getByRole('button', { name: '위험 전주 CSV' }).click(),
     ]);
-    expect(download.suggestedFilename()).toBe(`polewatch_${DAY}.csv`);
+    expect(download.suggestedFilename()).toBe(`hailmary_${DAY}.csv`);
     const text = await readFile(await download.path(), 'utf8');
     expect(text.charCodeAt(0)).toBe(0xfeff);
     const lines = text.slice(1).split('\r\n');
@@ -169,7 +211,11 @@ test.describe('A. 지도·목록', () => {
   test('범례와 출발·종료 핀 라벨', async ({ page }) => {
     await openMap(page);
     const legend = page.getByRole('group', { name: '범례' });
-    for (const t of ['주행 경로', '미점검 도로', '위험', '주의', '양호']) await expect(legend).toContainText(t);
+    await expect(legend).not.toContainText('미점검');
+    // 축척 막대 (미터법)
+    await expect(page.locator('.leaflet-control-scale-line')).toHaveText(/^\d+ (m|km)$/);
+    await expect(page.locator('.leaflet-overlay-pane path[stroke-dasharray]')).toHaveCount(0);
+    for (const t of ['주행 경로', '위험', '주의', '양호']) await expect(legend).toContainText(t);
     await expect(page.locator('.leaflet-tooltip', { hasText: '출발 09:11' })).toBeVisible();
     await expect(page.locator('.leaflet-tooltip', { hasText: '종료 09:32' })).toBeVisible();
   });

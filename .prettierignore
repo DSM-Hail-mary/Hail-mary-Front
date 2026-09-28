@@ -2,3 +2,4 @@ docs
 dist
 package-lock.json
 src/styles/tokens.css
+dist-e2e

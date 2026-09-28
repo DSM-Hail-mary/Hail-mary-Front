@@ -1,18 +1,19 @@
 import { dateOf } from '@/domain/format';
-import type { DeviceLog, Drive, DriveDate, PoleRecord, SyncStatus } from '@/domain/types';
-import { ApiError, type PoleWatchApi } from '../PoleWatchApi';
+import type { DeviceSession, Drive, DriveDate, PoleRecord, SyncStatus } from '@/domain/types';
+import { ApiError, type HailMaryApi } from '../HailMaryApi';
 
 export type MockSyncMode = 'done' | 'syncing' | 'failed';
 
 export interface MockDataset {
   records: PoleRecord[];
   drives: Drive[];
-  deviceLogs: DeviceLog[];
+  /** 가장 최근 주행의 기기 상태 (없으면 null). */
+  deviceSession: DeviceSession | null;
   lastSyncedAt: string | null;
 }
 
 /** 기록이 하나도 없는 상태. 서버 없이 앱을 띄울 때의 기본값이다 (가짜 전주를 보여 주지 않는다). */
-export const EMPTY_DATASET: MockDataset = { records: [], drives: [], deviceLogs: [], lastSyncedAt: null };
+export const EMPTY_DATASET: MockDataset = { records: [], drives: [], deviceSession: null, lastSyncedAt: null };
 
 export interface MockApiOptions {
   /** 기본은 빈 데이터. 테스트는 sampleData.ts의 예시 데이터를 넘긴다. */
@@ -28,7 +29,7 @@ export interface MockApiOptions {
 const SYNC_TOTAL_IMAGES = 340;
 
 /** 메모리 안에서 동작하는 API. 새로고침하면 처음 상태로 돌아간다. */
-export function createMockApi(options: MockApiOptions = {}): PoleWatchApi {
+export function createMockApi(options: MockApiOptions = {}): HailMaryApi {
   const {
     dataset: data = EMPTY_DATASET,
     latencyMs = 40,
@@ -98,10 +99,8 @@ export function createMockApi(options: MockApiOptions = {}): PoleWatchApi {
       records.set(id, next);
       return delay(next);
     },
-    getDeviceLog(driveId) {
-      const log = data.deviceLogs.find((l) => l.driveId === driveId);
-      if (!log) return Promise.reject(new ApiError(404, `기기 로그가 없습니다: ${driveId}`));
-      return delay(log);
+    getLatestDeviceSession() {
+      return delay(data.deviceSession);
     },
     getSyncStatus() {
       return delay(currentSync());

@@ -5,6 +5,11 @@ const env = import.meta.env;
 export const config = {
   apiMode: (env.VITE_API_MODE === 'http' ? 'http' : 'mock') as 'http' | 'mock',
   apiBase: env.VITE_API_BASE ?? '',
+  /**
+   * 기기 상태만 따로 받을 서버 주소 (예: http://127.0.0.1:8000). 있으면 다른 화면의 데이터 모드와 관계없이
+   * 기기 상태는 이 서버의 GET /api/device/session/latest 에서 받는다. 서버 API가 화면별로 준비되는 동안 쓴다.
+   */
+  deviceApiBase: env.VITE_DEVICE_API_BASE?.trim() ?? '',
   /** mock 모드에서 테스트용 예시 데이터(가짜 전주 13개 등)를 쓸지. 기본 false = 빈 상태. */
   mockSampleData: env.VITE_MOCK_SAMPLE_DATA === 'true',
   mockSync: (['done', 'syncing', 'failed'] as const).find((m) => m === env.VITE_MOCK_SYNC) ?? 'done',

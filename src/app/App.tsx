@@ -2,7 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazy, Suspense, useState } from 'react';
 import { createHashRouter, Navigate, Outlet, RouterProvider } from 'react-router';
 import { ApiProvider } from '@/api/ApiProvider';
-import type { PoleWatchApi } from '@/api/PoleWatchApi';
+import { useSyncStatus } from '@/api/queries';
+import type { HailMaryApi } from '@/api/HailMaryApi';
 import { MapPage } from '@/features/map/MapPage';
 import { Loading } from '@/ui/EmptyState';
 import styles from './App.module.css';
@@ -17,10 +18,17 @@ const PolesIndexPage = lazy(() =>
 );
 const DevicePage = lazy(() => import('@/features/device/DevicePage').then((m) => ({ default: m.DevicePage })));
 
+/** 동기화 상태를 주기적으로 확인하고, 새 데이터가 들어오면 화면 데이터를 다시 받는다 (화면 표시는 없음). */
+function SyncWatcher() {
+  useSyncStatus();
+  return null;
+}
+
 function AppLayout() {
   return (
     <NavMemoryProvider>
       <div className={styles.app}>
+        <SyncWatcher />
         <TopBar />
         <main className={styles.main}>
           <Suspense fallback={<Loading />}>
@@ -47,7 +55,7 @@ const router = createHashRouter([
   },
 ]);
 
-export function App({ api }: { api: PoleWatchApi }) {
+export function App({ api }: { api: HailMaryApi }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({

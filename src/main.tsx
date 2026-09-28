@@ -7,15 +7,23 @@ import './styles/base.css';
 import { createHttpApi } from './api/httpApi';
 import { createMockApi, EMPTY_DATASET } from './api/mock/mockApi';
 import { App } from './app/App';
+import { applyTheme, loadTheme } from './app/theme';
 import { config } from './config';
 import { registerTileCache } from './features/map/tileCache';
 
 // 테스트 전용 예시 데이터는 요청했을 때만 따로 불러온다 (기본 실행·배포 빌드에는 가짜 전주가 없다).
 const dataset = config.mockSampleData ? (await import('./api/mock/sampleData')).createSampleDataset() : EMPTY_DATASET;
 
-const api =
+const baseApi =
   config.apiMode === 'http' ? createHttpApi(config.apiBase) : createMockApi({ dataset, initialSync: config.mockSync });
 
+// 기기 상태만 실제 서버에서 받는 경우 (VITE_DEVICE_API_BASE)
+const api = config.deviceApiBase
+  ? { ...baseApi, getLatestDeviceSession: createHttpApi(config.deviceApiBase).getLatestDeviceSession }
+  : baseApi;
+
+// 첫 화면을 그리기 전에 테마를 적용해 깜빡임을 막는다
+applyTheme(loadTheme());
 registerTileCache();
 
 createRoot(document.getElementById('root')!).render(

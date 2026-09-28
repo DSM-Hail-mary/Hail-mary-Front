@@ -16,12 +16,6 @@
   gap: 10px;
 }
 
-.brandName {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
 .nav {
   display: flex;
   align-items: stretch;
@@ -54,87 +48,57 @@
   flex-grow: 1;
 }
 
-.sync {
+.theme {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: var(--pw-fs-small);
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--pw-radius-control);
+  background: var(--pw-bg-page);
+  box-shadow: inset 0 0 0 1px var(--pw-border);
 }
 
-.syncState {
+.theme button {
+  height: 34px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 600;
-}
-
-.syncNone {
+  gap: 6px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
   color: var(--pw-nav-text);
+  font-size: var(--pw-fs-small);
   font-weight: 500;
 }
 
-.syncMeta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--pw-nav-text);
+.theme button:hover {
+  color: var(--pw-text);
 }
 
-.syncValue {
-  color: var(--pw-topbar-meta);
+.theme button[aria-pressed='true'] {
+  background: var(--pw-surface-raised);
+  color: var(--pw-text);
+  font-weight: 700;
 }
 
-.syncDivider {
-  width: 1px;
-  height: 16px;
-  background: var(--pw-topbar-divider);
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--pw-control-border);
 }
 
-.progress {
-  position: relative;
-  display: block;
-  width: 72px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--pw-topbar-divider);
-  overflow: hidden;
+.swatch[data-theme-swatch='black'] {
+  background: #141414;
 }
 
-.progress > span {
-  position: absolute;
-  inset: 0 auto 0 0;
-  background: var(--pw-brand);
-  transition: width 0.3s;
-}
-
-.spin {
-  animation: spin 0.9s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.syncFailed {
-  margin-right: -12px;
-}
-
-.retry {
-  border: 1px solid var(--pw-retry-border);
-  color: var(--pw-nav-text-active);
-  font-size: var(--pw-fs-small);
+.swatch[data-theme-swatch='white'] {
+  background: #ffffff;
 }
 
 @media (max-width: 1100px) {
   .bar {
     gap: 24px;
-  }
-
-  .syncMeta:last-child,
-  .syncDivider {
-    display: none;
   }
 }
 
@@ -150,8 +114,7 @@
     height: 52px;
   }
 
-  .sync {
-    height: 52px;
+  .theme {
     margin-left: auto;
   }
 
@@ -172,9 +135,5 @@
     flex: 1 0 auto;
     justify-content: center;
     padding: 3px 12px 0;
-  }
-
-  .syncMeta {
-    display: none;
   }
 }

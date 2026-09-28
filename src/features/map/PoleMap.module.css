@@ -11,9 +11,31 @@
   inset: 0;
 }
 
+/* 축척 막대: 왼쪽 아래 범례 바로 위 */
+.map :global(.leaflet-bottom.leaflet-left) {
+  bottom: 104px;
+  left: 10px;
+}
+
+.map :global(.leaflet-control-scale-line) {
+  padding: 1px 6px;
+  border: 2px solid var(--pw-text);
+  border-top: none;
+  background: var(--pw-attribution-bg);
+  color: var(--pw-text);
+  font-family: var(--pw-font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 /* 밝은 타일 → 무채색 다크 (새 색상을 들이지 않도록 흑백으로) */
 .darkTiles {
   filter: grayscale(1) invert(1) brightness(0.5) contrast(1.1);
+}
+
+/* White 테마: 밝은 타일을 그대로 흑백으로만 */
+:global(:root[data-theme='light']) .darkTiles {
+  filter: grayscale(1);
 }
 
 /* 벡터 레이어 색: SVG 속성 대신 CSS로 토큰을 적용한다 */
@@ -23,10 +45,6 @@
 
 .routeCasing {
   stroke: var(--pw-map-route-casing);
-}
-
-.unscanned {
-  stroke: var(--pw-map-unscanned);
 }
 
 .startPin {
@@ -92,8 +110,8 @@
   padding: 4px 8px;
   border: none;
   border-radius: 6px;
-  background: var(--pw-text);
-  color: var(--pw-text-on-light);
+  background: var(--pw-inverse-bg);
+  color: var(--pw-inverse-text);
   font-family: var(--pw-font-sans);
   font-size: var(--pw-fs-caption);
   font-weight: 600;
@@ -101,15 +119,15 @@
 }
 
 .markerTip::before {
-  border-top-color: var(--pw-text) !important;
+  border-top-color: var(--pw-inverse-bg) !important;
 }
 
 .pinLabel {
   padding: 3px 8px;
   border: none;
   border-radius: var(--pw-radius-pill);
-  background: var(--pw-text);
-  color: var(--pw-text-on-light);
+  background: var(--pw-inverse-bg);
+  color: var(--pw-inverse-text);
   font-family: var(--pw-font-sans);
   font-size: var(--pw-fs-caption);
   font-weight: 600;
@@ -149,7 +167,7 @@
 }
 
 .zoom button:hover {
-  background: #242424;
+  background: var(--pw-hover);
 }
 
 .zoomDivider {
@@ -230,6 +248,11 @@
 }
 
 @media (max-width: 760px) {
+  .map :global(.leaflet-bottom.leaflet-left) {
+    bottom: 80px;
+    left: 2px;
+  }
+
   .root {
     flex: 0 0 auto;
     height: 60vh;

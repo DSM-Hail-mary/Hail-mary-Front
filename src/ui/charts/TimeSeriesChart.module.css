@@ -63,14 +63,14 @@
 }
 
 .badge rect {
-  fill: var(--pw-text);
+  fill: var(--pw-inverse-bg);
 }
 
 .badge text {
   font-family: var(--pw-font-mono);
   font-size: var(--pw-fs-axis);
   font-weight: 500;
-  fill: var(--pw-text-on-light);
+  fill: var(--pw-inverse-text);
 }
 
 .dot {
@@ -87,8 +87,8 @@
   justify-content: space-between;
   padding: 6px 10px;
   border-radius: 6px;
-  background: var(--pw-text);
-  color: var(--pw-text-on-light);
+  background: var(--pw-inverse-bg);
+  color: var(--pw-inverse-text);
   font-size: var(--pw-fs-caption);
   pointer-events: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);

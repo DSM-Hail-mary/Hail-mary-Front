@@ -62,6 +62,19 @@ describe('mock API', () => {
   });
 });
 
+describe('mock API 기기 상태', () => {
+  it('예시 데이터: 최신 세션을 서버 명세 형식에서 변환해 돌려준다', async () => {
+    const api = createMockApi({ latencyMs: 0, dataset: createSampleDataset() });
+    const s = await api.getLatestDeviceSession();
+    expect(s?.device).toBe('Jetson Nano');
+    expect(s?.samples).toHaveLength(22);
+  });
+
+  it('빈 데이터면 null (주행 기록 없음)', async () => {
+    expect(await createMockApi({ latencyMs: 0 }).getLatestDeviceSession()).toBeNull();
+  });
+});
+
 describe('mock API 기본값', () => {
   it('예시 데이터를 넘기지 않으면 가짜 전주 없이 빈 상태', async () => {
     const api = createMockApi({ latencyMs: 0 });

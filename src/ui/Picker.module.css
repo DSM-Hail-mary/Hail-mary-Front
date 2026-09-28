@@ -25,7 +25,7 @@
 }
 
 .trigger:hover {
-  background: #242424;
+  background: var(--pw-hover);
 }
 
 .display {
@@ -107,4 +107,33 @@
   margin: 6px -6px 0;
   padding: 10px 12px;
   border-top: 1px solid var(--pw-divider);
+}
+
+/* 목록 필터용 작은 셀렉트 */
+.sm {
+  min-width: 0;
+}
+
+.sm .trigger {
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 10px;
+  font-size: var(--pw-fs-small);
+  font-weight: 500;
+}
+
+.sm .display {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sm .option {
+  min-height: 40px;
+  font-size: var(--pw-fs-small);
+}
+
+.sm .popover {
+  min-width: 100%;
 }

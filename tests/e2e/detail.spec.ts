@@ -9,7 +9,7 @@ test.describe('B. 전주 상세·검수', () => {
     await expect(page).toHaveURL(new RegExp(`#/poles/${DANGER}`));
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('3501-12669-N');
     await expect(page.getByText('위험 전주 1 / 3')).toBeVisible();
-    await expect(page.getByRole('link', { name: '전주 상세·검수' })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('link', { name: '상세 검수' })).toHaveAttribute('aria-current', 'page');
   });
 
   test('크롭 뷰어: 썸네일·키보드 전환, 빈 칸, 검출 박스, 확대/축소', async ({ page }) => {
@@ -109,7 +109,7 @@ test.describe('B. 전주 상세·검수', () => {
     await expect(page.getByText('위험 전주 2건')).toBeVisible();
 
     // 지도 KPI에서도 빠지고, 목록에는 오탐으로 표시
-    await page.getByRole('link', { name: '지도·목록' }).first().click();
+    await page.getByRole('link', { name: '지도', exact: true }).first().click();
     await expect(kpi(page)).toHaveText(['12', '2', '4', '6']);
     await expect(rows(page).filter({ hasText: '3501-12669-N' })).toContainText('오탐');
 
@@ -166,7 +166,7 @@ test.describe('B. 전주 상세·검수', () => {
 
   test('← 지도·목록은 해당 기록을 선택한 채로 돌아간다', async ({ page }) => {
     await page.goto(`/#/poles/${rec('3502-12672-E')}`);
-    await page.getByRole('link', { name: '지도·목록' }).nth(1).click();
+    await page.getByRole('link', { name: '지도', exact: true }).nth(1).click();
     await expect(page).toHaveURL(new RegExp(`sel=${rec('3502-12672-E')}`));
     await expect(rows(page).filter({ hasText: '3502-12672-E' })).toHaveAttribute('aria-pressed', 'true');
   });
@@ -174,7 +174,7 @@ test.describe('B. 전주 상세·검수', () => {
   test('없는 기록 주소 → 안내', async ({ page }) => {
     await page.goto('/#/poles/nope');
     await expect(page.getByText('기록을 찾을 수 없습니다')).toBeVisible();
-    await page.getByRole('link', { name: '지도·목록으로' }).click();
+    await page.getByRole('link', { name: '지도로' }).click();
     await expect(page).toHaveURL(/#\/map/);
   });
 });

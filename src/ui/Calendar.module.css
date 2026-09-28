@@ -1,0 +1,131 @@
+.calendar {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: var(--pw-fs-body);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.nav {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--pw-radius-control);
+  background: transparent;
+  color: var(--pw-text);
+}
+
+.nav:hover {
+  background: var(--pw-hover-ghost);
+}
+
+.weekdays,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.weekdays span {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--pw-fs-caption);
+  color: var(--pw-text-muted);
+}
+
+.day {
+  position: relative;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--pw-radius-control);
+  background: transparent;
+  color: var(--pw-text);
+  font-size: var(--pw-fs-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.day:hover {
+  background: var(--pw-hover-ghost);
+}
+
+.day[data-outside] {
+  color: var(--pw-text-disabled);
+}
+
+.day[data-today] {
+  box-shadow: inset 0 0 0 1.5px var(--pw-control-border);
+}
+
+.day[aria-pressed='true'] {
+  background: var(--pw-brand);
+  color: var(--pw-text-on-light);
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--pw-brand);
+}
+
+.day .dot {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.day[aria-pressed='true'] .dot {
+  background: var(--pw-text-on-light);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--pw-fs-caption);
+  color: var(--pw-text-muted);
+}
+
+.todayButton {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--pw-control-border);
+  border-radius: var(--pw-radius-control);
+  background: transparent;
+  color: var(--pw-text);
+  font-size: var(--pw-fs-small);
+  font-weight: 600;
+}
+
+.todayButton:hover {
+  background: var(--pw-hover-ghost);
+}

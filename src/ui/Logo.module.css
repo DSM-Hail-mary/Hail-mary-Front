@@ -1,0 +1,21 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.word {
+  display: inline-flex;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.strong {
+  font-weight: 700;
+  color: var(--pw-text);
+}
+
+.accent {
+  font-weight: 400;
+  color: var(--pw-brand-text);
+}

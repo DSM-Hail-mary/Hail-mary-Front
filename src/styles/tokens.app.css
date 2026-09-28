@@ -20,6 +20,19 @@
   --pw-danger-hatch: #4a1a17;
   --pw-crop-bg: #d2d3d1; /* 이미지 로딩 전 바탕 */
 
+  /* 상호작용·반전 면 (테마마다 다름) */
+  --pw-hover: #242424;
+  --pw-hover-ghost: rgba(255, 255, 255, 0.06);
+  --pw-control-hover-border: #555555;
+  --pw-brand-hover: #ffdb4d;
+  /* 노랑을 '글자'로 쓸 때 (로고 등). 밝은 바탕에서는 노랑 글자가 안 읽혀 어두운 황금색으로 */
+  --pw-brand-text: var(--pw-brand);
+  /* 반전 면: 툴팁·핀 라벨·오탐 태그·눌린 버튼처럼 바탕과 반대 명도의 면 */
+  --pw-inverse-bg: #ededea;
+  --pw-inverse-text: #141414;
+  --pw-inverse-hover: #ffffff;
+  --pw-attribution-bg: rgba(10, 10, 10, 0.7);
+
   --pw-shadow-card: 0 0 0 1px var(--pw-border);
   --pw-shadow-floating: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px #333333, 0 8px 24px rgba(0, 0, 0, 0.5);
   --pw-shadow-floating-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px #333333, 0 4px 12px rgba(0, 0, 0, 0.5);
@@ -28,4 +41,84 @@
   --pw-page-pad: 24px;
   --pw-kpi-h: 88px;
   --pw-subheader-h: 76px;
+}
+
+/*
+ * White 테마 (상단 바 Black/White 전환). 디자인 원본은 다크 전용이라 같은 규칙으로 밝게 옮겼다:
+ * 무채색 + 노랑 강조 하나 + 빨강은 위험에만. 등급은 모양·글자로도 구분되므로 명도만 뒤집는다.
+ */
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --pw-bg-bar: #ffffff;
+  --pw-bg-page: #f2f2ef;
+  --pw-surface: #ffffff;
+  --pw-surface-raised: #e4e4e0;
+  --pw-border: #deded9;
+  --pw-divider: #e8e8e4;
+  --pw-control-border: #cbcbc6;
+
+  --pw-text: #141414;
+  --pw-text-2: #3a3a37;
+  --pw-text-muted: #66665f;
+  --pw-text-disabled: #a6a6a0;
+  --pw-text-on-light: #141414;
+
+  --pw-brand: #ffd21f;
+  --pw-brand-tint: #fff5cc;
+  --pw-brand-ring: #ffe680;
+
+  --pw-danger: #e5483d;
+  --pw-danger-line: #d63a2f;
+  --pw-danger-text: #c42b20;
+  --pw-danger-tint: #fde7e5;
+
+  --pw-grade-danger-fill: #e5483d;
+  --pw-grade-danger-text: #141414;
+  --pw-grade-warn-fill: #2b2b28;
+  --pw-grade-warn-text: #ffffff;
+  --pw-grade-ok-fill: #ffffff;
+  --pw-grade-ok-line: #7a7a74;
+
+  --pw-status-new-bg: #141414;
+  --pw-status-new-text: #ffffff;
+  --pw-status-checked-bg: #e4e4e0;
+  --pw-status-checked-text: #141414;
+  --pw-status-planned-ring: #141414;
+  --pw-status-done-ring: #c4c4be;
+
+  --pw-map-bg: #ecece8;
+
+  --pw-shadow-float: 0 0 0 1px #deded9, 0 8px 24px rgba(0, 0, 0, 0.12);
+  --pw-ring-selected: 0 0 0 3px #ffd21f, 0 0 0 5.5px #141414;
+
+  --pw-nav-text: #66665f;
+  --pw-nav-text-active: #141414;
+  --pw-topbar-text: #141414;
+  --pw-topbar-divider: #deded9;
+  --pw-topbar-meta: #3a3a37;
+  --pw-outline-subtle: #c4c4be;
+  --pw-retry-border: #b5b5af;
+  --pw-chart-grid: #ecece8;
+  --pw-track: #e4e4e0;
+  --pw-empty-icon-bg: #ecece8;
+  --pw-switch-knob: #ffffff;
+  --pw-tooltip-meta: #a6a6a0;
+  --pw-hatch-a: #f2f2ef;
+  --pw-hatch-b: #e8e8e4;
+  --pw-danger-hatch: #f7c9c4;
+
+  --pw-hover: #f2f2ef;
+  --pw-hover-ghost: rgba(0, 0, 0, 0.05);
+  --pw-control-hover-border: #9d9d97;
+  --pw-brand-hover: #f5c800;
+  --pw-brand-text: #876700; /* 흰 바탕 대비 약 5.2:1 (WCAG AA 4.5:1 이상) */
+  --pw-inverse-bg: #1c1c1c;
+  --pw-inverse-text: #ffffff;
+  --pw-inverse-hover: #000000;
+  --pw-attribution-bg: rgba(255, 255, 255, 0.8);
+
+  --pw-shadow-floating: 0 1px 2px rgba(0, 0, 0, 0.08), 0 0 0 1px #deded9, 0 8px 24px rgba(0, 0, 0, 0.12);
+  --pw-shadow-floating-sm: 0 1px 2px rgba(0, 0, 0, 0.08), 0 0 0 1px #deded9, 0 4px 12px rgba(0, 0, 0, 0.1);
+  --pw-focus-ring: 0 0 0 2px var(--pw-bg-page), 0 0 0 4px #141414;
 }

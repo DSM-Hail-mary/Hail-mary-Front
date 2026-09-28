@@ -1,4 +1,4 @@
-# PoleWatch 프론트 ↔ 서버 API 계약 (제안)
+# HailMary 프론트 ↔ 서버 API 계약 (제안)
 
 프론트는 `VITE_API_MODE=http`일 때 아래 REST 엔드포인트를 부릅니다. 현재 `Hail-mary-Server`에는
 아직 없는 API라, 서버 구현 전까지는 `VITE_API_MODE=mock`(기본)으로 내장 예시 데이터를 씁니다.
@@ -12,11 +12,11 @@
 | 메서드 | 경로 | 응답 | 용도 |
 |---|---|---|---|
 | GET | `/api/v1/drives/dates` | `DriveDate[]` (최신순) | 기준 날짜 선택 목록 |
-| GET | `/api/v1/drives?date=YYYY-MM-DD` | `Drive[]` | 지도 경로·미점검 도로, 기기 상태 주행 선택 |
+| GET | `/api/v1/drives?date=YYYY-MM-DD` | `Drive[]` | 지도 주행 경로, 기기 상태 주행 선택 |
 | GET | `/api/v1/records?date=YYYY-MM-DD` | `PoleRecord[]` | 지도 마커·목록·KPI |
 | GET | `/api/v1/records/{id}` | `PoleRecord` | 상세 화면 (404 → "기록을 찾을 수 없습니다") |
 | PATCH | `/api/v1/records/{id}` | `PoleRecord` | 처리 상태·판정 검수 변경. 본문 `{ "status"?: ..., "review"?: ... }` |
-| GET | `/api/v1/drives/{driveId}/device-log` | `DeviceLog` | 기기 상태 화면 |
+| GET | `/api/device/session/latest` | 서버 명세 형식 (아래) | 기기 상태 화면 — 가장 최근 주행 세션. 404면 "기록 없음" |
 | GET | `/api/v1/sync` | `SyncStatus` | 상단 바 동기화 상태 (5초 간격, 진행 중이면 1초) |
 | POST | `/api/v1/sync/retry` | `SyncStatus` | "다시 시도" |
 
@@ -66,3 +66,16 @@
 ```
 
 `detections[].box`는 크롭 이미지 크기 대비 0~1 비율 (x, y = 왼쪽 위).
+
+## 기기 상태 (백엔드 명세 v0.2.0 §1 그대로)
+
+`GET /api/device/session/latest` — 백엔드 "기기 상태 API 명세서"의 응답을 그대로 받습니다 (snake_case, 시각은 `HH:MM`).
+프론트는 `src/api/deviceSession.ts`에서 형식을 검증하고 앱 형식으로 바꿉니다.
+
+- 시각 `HH:MM`은 한국 시간(+09:00)으로 해석, 자정을 넘기면 다음 날로 이어 붙임
+- `telemetry.t / temp / power / drops / gps` 배열 길이가 모두 같아야 함 (다르면 화면에 형식 오류 표시)
+- `gps_reception`은 0~1, `gps`는 0/1
+- 404 `{"detail": "세션 기록 없음"}` → "주행 기록이 없습니다"
+- 응답 예시(테스트에 그대로 사용): `src/api/__fixtures__/deviceSessionLatest.json`
+
+기기 상태만 먼저 서버에 붙이려면 `.env`에 `VITE_DEVICE_API_BASE=http://127.0.0.1:8000` 을 넣습니다.
