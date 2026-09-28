@@ -48,9 +48,15 @@ export function DevicePage() {
   const { drives, isPending } = useRecentDrives();
 
   // 주행 선택: URL → 지도에서 보던 날짜의 주행 → 가장 최근 주행
-  const driveId = search.get('drive') ?? drives.find((d) => d.date === mapDate)?.id ?? drives[0]?.id ?? undefined;
+  // 목록이 다 온 뒤에 기본값을 고른다 (도착 순서에 따라 엉뚱한 주행 로그를 요청하지 않도록).
+  const requested = search.get('drive');
+  const driveId = isPending
+    ? (requested ?? undefined)
+    : (requested ?? drives.find((d) => d.date === mapDate)?.id ?? drives[0]?.id);
   const drive = drives.find((d) => d.id === driveId);
-  const log = useDeviceLog(driveId);
+  // 목록에서 확인된 주행만 로그를 받는다 (잘못된 ?drive= 로 404 요청을 보내지 않음).
+  const log = useDeviceLog(drive?.id);
+  const unknownDrive = !isPending && requested !== null && !drive;
 
   if (isPending) return <Loading />;
   if (drives.length === 0) {
@@ -93,7 +99,19 @@ export function DevicePage() {
         />
       </div>
 
-      {log.isPending ? (
+      {unknownDrive ? (
+        <EmptyState
+          icon="filter"
+          title="주행 기록을 찾을 수 없습니다"
+          action={
+            <ButtonLink to={routes.device()} variant="secondary">
+              최근 주행 보기
+            </ButtonLink>
+          }
+        >
+          최근 {RECENT_DATES}일치 주행 목록에 없는 기록입니다. 위에서 주행을 다시 고르세요.
+        </EmptyState>
+      ) : log.isPending ? (
         <Loading />
       ) : log.isError ? (
         <EmptyState icon="error" title="기기 로그를 불러오지 못했습니다">

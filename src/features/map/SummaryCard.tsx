@@ -12,7 +12,7 @@ import styles from './SummaryCard.module.css';
 
 /** 지도 오른쪽 위: 선택한 전주 요약 카드 (360px). */
 export function SummaryCard({ record, onClose }: { record: PoleRecord; onClose: () => void }) {
-  const update = useUpdateRecord();
+  const update = useUpdateRecord(record.id);
   const confirmable = canToggleConfirm(record.status);
   const confirmed = record.status === 'checked';
 

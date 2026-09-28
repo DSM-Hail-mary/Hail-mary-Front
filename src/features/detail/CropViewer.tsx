@@ -7,6 +7,8 @@ import styles from './CropViewer.module.css';
 
 const ZOOMS = [1, 1.5, 2, 3] as const;
 const SLOTS = 5;
+/** 본 이미지 틀 비율 (856×642). */
+const FRAME_ASPECT = 4 / 3;
 
 interface Pan {
   x: number;
@@ -39,6 +41,8 @@ export function CropViewer({ crops }: { crops: readonly Crop[] }) {
   const [pan, setPan] = useState<Pan>({ x: 0, y: 0 });
   const drag = useRef<{ startX: number; startY: number; from: Pan; w: number; h: number } | null>(null);
   const [dragging, setDragging] = useState(false);
+  /** 크롭 이미지 원본 비율 (가로/세로). 4:3이 아니면 틀 안에 여백을 두고 맞춰 박스 위치가 어긋나지 않게 한다. */
+  const [aspect, setAspect] = useState(FRAME_ASPECT);
 
   const crop = crops[index];
   const zoom = ZOOMS[zoomIdx] ?? 1;
@@ -47,11 +51,12 @@ export function CropViewer({ crops }: { crops: readonly Crop[] }) {
     const idx = Math.min(ZOOMS.length - 1, Math.max(0, next));
     const z = ZOOMS[idx] ?? 1;
     setZoomIdx(idx);
-    // 처음 확대할 때는 위험 요소 쪽으로, 이후엔 보던 자리 유지
-    setPan((p) => clampPan(zoomIdx === 0 && crop ? scalePan(focusOf(crop.detections), z) : p, z));
+    // 처음 확대할 때는 위험 요소 쪽으로, 이후엔 보던 지점이 가운데에 남도록 배율 비율만큼 옮긴다.
+    setPan((p) => clampPan(zoomIdx === 0 && crop ? scalePan(focusOf(crop.detections), z) : scalePan(p, z / zoom), z));
   };
 
   const choose = (i: number) => {
+    if (i !== index) setAspect(FRAME_ASPECT);
     setIndex(i);
     setPan((p) => (zoomIdx === 0 ? p : clampPan(scalePan(focusOf(crops[i]?.detections ?? []), zoom), zoom)));
   };
@@ -151,11 +156,23 @@ export function CropViewer({ crops }: { crops: readonly Crop[] }) {
             <div
               className={styles.canvas}
               style={{
+                // contain: 원본 비율 그대로 틀 안에 넣는다
+                width: aspect >= FRAME_ASPECT ? '100%' : `${(aspect / FRAME_ASPECT) * 100}%`,
+                height: aspect >= FRAME_ASPECT ? `${(FRAME_ASPECT / aspect) * 100}%` : '100%',
                 transform: `translate(${pan.x * 100}%, ${pan.y * 100}%) scale(${zoom})`,
                 ['--zoom' as string]: zoom,
               }}
             >
-              <img src={crop.url} alt="" draggable={false} className={styles.image} />
+              <img
+                src={crop.url}
+                alt=""
+                draggable={false}
+                className={styles.image}
+                onLoad={(e) => {
+                  const { naturalWidth: w, naturalHeight: h } = e.currentTarget;
+                  if (w > 0 && h > 0) setAspect(w / h);
+                }}
+              />
               {showBoxes &&
                 crop.detections.map((d, i) => (
                   <span

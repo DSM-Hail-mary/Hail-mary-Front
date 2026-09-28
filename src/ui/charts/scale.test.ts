@@ -15,6 +15,12 @@ describe('axisScale', () => {
     expect(axisScale([0, 6], { zeroBased: true })).toEqual({ min: 0, max: 8, ticks: [0, 4, 8] });
   });
 
+  it('데이터가 기준선보다 높아도(과열) 기준선이 축 안에 있다', () => {
+    const s = axisScale([85, 90], { zeroBased: false, threshold: 75 });
+    expect(s.min).toBeLessThanOrEqual(75);
+    expect(s.max).toBeGreaterThanOrEqual(90);
+  });
+
   it('값이 모두 0이어도 범위가 생긴다', () => {
     const s = axisScale([0, 0], { zeroBased: true });
     expect(s.max).toBeGreaterThan(s.min);

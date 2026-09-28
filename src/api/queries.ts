@@ -67,32 +67,54 @@ function writeRecord(qc: QueryClient, record: PoleRecord) {
   );
 }
 
+function patchCachedRecord(qc: QueryClient, id: string, date: string, patch: RecordPatch) {
+  qc.setQueryData<PoleRecord>(queryKeys.record(id), (r) => (r ? { ...r, ...patch } : r));
+  qc.setQueryData<PoleRecord[]>(queryKeys.records(date), (list) =>
+    list?.map((r) => (r.id === id ? { ...r, ...patch } : r)),
+  );
+}
+
 /**
  * 처리 상태·검수 결과 변경. 화면에 바로 반영(낙관적 업데이트)하고
- * 서버가 거절하면 이전 값으로 되돌린다.
+ * 서버가 거절하면 바꾼 필드만 이전 값으로 되돌린다.
+ * 같은 기록의 저장은 순서대로 하나씩 보낸다 (scope) — 앞 저장의 되돌리기가 뒤 저장을 덮지 않도록.
  */
-export function useUpdateRecord() {
+export function useUpdateRecord(recordId: string) {
   const api = useApi();
   const qc = useQueryClient();
   return useMutation({
+    scope: { id: `record:${recordId}` },
     mutationFn: ({ record, patch }: { record: PoleRecord; patch: RecordPatch }) => api.updateRecord(record.id, patch),
     onMutate: async ({ record, patch }) => {
-      await qc.cancelQueries({ queryKey: queryKeys.all });
-      const previous =
+      const date = dateOf(record.recordedAt);
+      // 이 기록과 관련된 조회만 멈춘다. 다른 화면의 첫 로딩을 끊지 않도록 범위를 좁힌다.
+      await Promise.all([
+        qc.cancelQueries({ queryKey: queryKeys.record(record.id), exact: true }),
+        qc.cancelQueries({ queryKey: queryKeys.records(date), exact: true }),
+      ]);
+      const current =
         findCachedRecord(qc, record.id) ?? qc.getQueryData<PoleRecord>(queryKeys.record(record.id)) ?? record;
-      writeRecord(qc, { ...previous, ...patch });
-      return { previous };
+      const previous: RecordPatch = {};
+      if ('status' in patch) previous.status = current.status;
+      if ('review' in patch) previous.review = current.review;
+      patchCachedRecord(qc, record.id, date, patch);
+      return { previous, date };
     },
-    onError: (_error, _vars, context) => {
-      if (context?.previous) writeRecord(qc, context.previous);
+    onError: (_error, { record }, context) => {
+      if (context) patchCachedRecord(qc, record.id, context.date, context.previous);
     },
     onSuccess: (saved) => writeRecord(qc, saved),
+    onSettled: (_data, _error, { record }) => {
+      void qc.invalidateQueries({ queryKey: queryKeys.record(record.id), exact: true });
+      void qc.invalidateQueries({ queryKey: queryKeys.records(dateOf(record.recordedAt)), exact: true });
+    },
   });
 }
 
 /**
- * 상단 바 동기화 상태. 주기적으로 묻고, 진행 중 → 완료로 바뀌면
- * 새 기록이 들어왔을 수 있으니 데이터 쿼리를 모두 새로 받는다.
+ * 상단 바 동기화 상태. 주기적으로 묻고, 새 데이터가 들어왔을 수 있으면
+ * (마지막 동기화 시각이 바뀌었거나, 진행 중이던 동기화가 끝나거나 실패하면) 데이터 쿼리를 새로 받는다.
+ * 폴링 사이에 시작·완료된 동기화도 lastSyncedAt 변화로 잡는다.
  */
 export function useSyncStatus() {
   const api = useApi();
@@ -103,14 +125,17 @@ export function useSyncStatus() {
     refetchInterval: (q) => (q.state.data?.state === 'syncing' ? 1000 : config.syncPollMs),
   });
 
-  const prevState = useRef(query.data?.state);
+  const state = query.data?.state;
+  const lastSyncedAt = query.data?.lastSyncedAt ?? null;
+  const prev = useRef<{ state: typeof state; lastSyncedAt: string | null } | null>(null);
   useEffect(() => {
-    const state = query.data?.state;
-    if (prevState.current === 'syncing' && state === 'done') {
-      void qc.invalidateQueries({ queryKey: queryKeys.all });
-    }
-    prevState.current = state;
-  }, [query.data?.state, qc]);
+    const before = prev.current;
+    prev.current = { state, lastSyncedAt };
+    if (!before || !state) return;
+    const finished = before.state === 'syncing' && state !== 'syncing';
+    const newSync = before.lastSyncedAt !== lastSyncedAt;
+    if (finished || newSync) void qc.invalidateQueries({ queryKey: queryKeys.all });
+  }, [state, lastSyncedAt, qc]);
 
   return query;
 }

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDriveDates, useDrives, useRecords } from '@/api/queries';
 import { formatDateLabel } from '@/domain/format';
 import { GRADE_LABEL, HAZARD_LABEL, STATUS_LABEL } from '@/domain/labels';
-import { applyFilters, countByGrade, type RecordFilters } from '@/domain/records';
+import { applyFilters, countByGrade, exportableRecords, type RecordFilters } from '@/domain/records';
 import { Button } from '@/ui/Button';
 import { EmptyState, Loading } from '@/ui/EmptyState';
 import { KpiBar } from './KpiBar';
@@ -20,7 +20,10 @@ export function MapPage() {
   const { data: driveDates } = useDriveDates();
 
   const all = useMemo(() => recordsQuery.data ?? [], [recordsQuery.data]);
+  // KPI는 오탐 제외, 목록 세그먼트는 보이는 행 수와 맞춰 오탐 포함.
   const counts = useMemo(() => countByGrade(all), [all]);
+  const segmentCounts = useMemo(() => countByGrade(all, { includeFalsePositives: true }), [all]);
+  const exportList = useMemo(() => exportableRecords(all), [all]);
   const visible = useMemo(() => applyFilters(all, filters), [all, filters]);
   // 등급 필터는 지도와 목록에 함께 적용된다. 선택은 필터에 걸러지면 카드도 닫힌다.
   const selected = visible.find((r) => r.id === selectedId) ?? null;
@@ -96,7 +99,8 @@ export function MapPage() {
         <RecordList
           date={date}
           records={visible}
-          counts={counts}
+          counts={segmentCounts}
+          exportRecords={exportList}
           filters={filters}
           onFiltersChange={setFilters}
           selectedId={selectedId}

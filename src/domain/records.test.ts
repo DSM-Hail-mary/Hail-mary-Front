@@ -5,6 +5,7 @@ import {
   basisTrend,
   countByGrade,
   dangerQueuePosition,
+  exportableRecords,
   historySummary,
   intervalLabel,
   pageOf,
@@ -26,6 +27,7 @@ describe('countByGrade', () => {
       makeRecord({ id: 'd', grade: 'ok', hazard: null, status: null }),
     ];
     expect(countByGrade(records)).toEqual({ total: 3, danger: 1, warn: 1, ok: 1 });
+    expect(countByGrade(records, { includeFalsePositives: true })).toEqual({ total: 4, danger: 2, warn: 1, ok: 1 });
   });
 });
 
@@ -136,6 +138,15 @@ describe('dangerQueuePosition', () => {
     expect(dangerQueuePosition(records, 'd3')).toEqual({ index: 2, total: 3, prevId: 'd2', nextId: null });
   });
 
+  it('오탐 판정된 위험 기록은 대기열에서 빠진다', () => {
+    const withFp = [
+      ...records,
+      makeRecord({ id: 'fp', grade: 'danger', review: 'false_positive', recordedAt: at('09:25:00') }),
+    ];
+    expect(dangerQueuePosition(withFp, 'd2')).toEqual({ index: 1, total: 3, prevId: 'd1', nextId: 'd3' });
+    expect(dangerQueuePosition(withFp, 'fp').index).toBe(-1);
+  });
+
   it('위험이 아니면 시각 기준 앞뒤 위험 기록을 찾는다', () => {
     expect(dangerQueuePosition(records, 'w1')).toEqual({ index: -1, total: 3, prevId: 'd1', nextId: 'd2' });
   });
@@ -158,6 +169,18 @@ describe('paginate / pageOf', () => {
     expect(pageOf(items, '0', 50)).toBe(1);
     expect(pageOf(items, '50', 50)).toBe(2);
     expect(pageOf(items, 'x', 50)).toBeNull();
+  });
+});
+
+describe('exportableRecords', () => {
+  it('위험 전주만, 오탐 빼고, 시각순', () => {
+    const records = [
+      makeRecord({ id: 'd2', recordedAt: at('09:20:00') }),
+      makeRecord({ id: 'w', grade: 'warn' }),
+      makeRecord({ id: 'fp', review: 'false_positive' }),
+      makeRecord({ id: 'd1', recordedAt: at('09:10:00') }),
+    ];
+    expect(exportableRecords(records).map((r) => r.id)).toEqual(['d1', 'd2']);
   });
 });
 

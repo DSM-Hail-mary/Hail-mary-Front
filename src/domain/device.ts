@@ -44,7 +44,12 @@ export interface GpsGap {
   minutes: number;
 }
 
-/** 연속된 GPS 미수신 분을 구간으로 묶는다. */
+const MINUTE = 60_000;
+
+/**
+ * 연속된 GPS 미수신 분을 구간으로 묶는다. 길이는 샘플 시각으로 계산하고,
+ * 샘플이 빠진 구간(기기가 꺼져 로그가 없음)을 사이에 두면 다른 구간으로 나눈다.
+ */
 export function gpsGaps(samples: readonly DeviceSample[]): GpsGap[] {
   const gaps: GpsGap[] = [];
   let start = -1;
@@ -52,20 +57,23 @@ export function gpsGaps(samples: readonly DeviceSample[]): GpsGap[] {
     const first = samples[start];
     const last = samples[end];
     if (!first || !last) return;
+    const endAt = Date.parse(last.at) + MINUTE;
     gaps.push({
       startIndex: start,
       endIndex: end,
       startAt: first.at,
-      endAt: new Date(Date.parse(last.at) + 60_000).toISOString(),
-      minutes: end - start + 1,
+      endAt: new Date(endAt).toISOString(),
+      minutes: Math.round((endAt - Date.parse(first.at)) / MINUTE),
     });
   };
   samples.forEach((s, i) => {
-    if (!s.gpsFix && start < 0) start = i;
-    if (s.gpsFix && start >= 0) {
+    const prev = samples[i - 1];
+    const contiguous = !!prev && Date.parse(s.at) - Date.parse(prev.at) <= MINUTE;
+    if (start >= 0 && (s.gpsFix || !contiguous)) {
       close(i - 1);
       start = -1;
     }
+    if (!s.gpsFix && start < 0) start = i;
   });
   if (start >= 0) close(samples.length - 1);
   return gaps;

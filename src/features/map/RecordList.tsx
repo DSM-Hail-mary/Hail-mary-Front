@@ -42,6 +42,8 @@ interface Props {
   /** 필터·정렬을 적용한 목록. */
   records: readonly PoleRecord[];
   counts: GradeCounts;
+  /** CSV로 내보낼 기록 (명세서 4.6: 그날 위험 전주, 오탐 제외). 목록 필터와 무관하다. */
+  exportRecords: readonly PoleRecord[];
   filters: RecordFilters;
   onFiltersChange: (patch: Partial<RecordFilters>) => void;
   selectedId: string | null;
@@ -60,6 +62,7 @@ export function RecordList({
   date,
   records,
   counts,
+  exportRecords,
   filters,
   onFiltersChange,
   selectedId,
@@ -75,9 +78,11 @@ export function RecordList({
   const listRef = useRef<HTMLOListElement>(null);
 
   // 지도에서 고른 기록이 다른 페이지에 있으면 그 페이지로 넘긴다 (렌더 중 상태 보정).
-  const [seenSelection, setSeenSelection] = useState(selectedId);
-  if (seenSelection !== selectedId) {
-    setSeenSelection(selectedId);
+  // 첫 표시(?sel= 로 들어온 경우), 선택 변경, 목록 내용 변경(로딩 완료·필터) 때마다 확인한다.
+  const selectionKey = `${selectedId}|${records.length}|${records[0]?.id ?? ''}`;
+  const [seenKey, setSeenKey] = useState<string | null>(null);
+  if (seenKey !== selectionKey) {
+    setSeenKey(selectionKey);
     const target = selectedId ? pageOf(records, selectedId, pageSize) : null;
     if (target && target !== page) setPage(target);
   }
@@ -88,7 +93,7 @@ export function RecordList({
     if (!selectedId) return;
     const row = listRef.current?.querySelector<HTMLElement>(`[data-record-id="${CSS.escape(selectedId)}"]`);
     row?.scrollIntoView({ block: 'nearest' });
-  }, [selectedId, view.page]);
+  }, [selectedId, view.page, records.length]);
 
   // ↑/↓: 목록 안에서 선택을 옮긴다 (페이지 경계도 넘는다).
   const onListKey = (e: KeyboardEvent) => {
@@ -103,7 +108,7 @@ export function RecordList({
     );
   };
 
-  const exportCsv = () => downloadCsv(`polewatch_${date}.csv`, recordsToCsv(records));
+  const exportCsv = () => downloadCsv(`polewatch_${date}.csv`, recordsToCsv(exportRecords));
 
   return (
     <section aria-label="전주 목록" className={styles.panel}>
@@ -115,12 +120,12 @@ export function RecordList({
           {showFilters && (
             <Button
               className={styles.export}
-              disabled={records.length === 0}
+              disabled={exportRecords.length === 0}
               onClick={exportCsv}
-              title="지금 목록(필터 적용)을 CSV로 저장"
+              title={`그날 위험 전주 ${exportRecords.length}건 (오탐 제외)을 CSV로 저장`}
             >
               <Icon name="download" size={14} />
-              CSV 내보내기
+              위험 전주 CSV
             </Button>
           )}
         </div>

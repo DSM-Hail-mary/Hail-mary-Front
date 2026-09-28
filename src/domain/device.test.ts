@@ -49,6 +49,20 @@ describe('gpsGaps', () => {
     expect(gaps[0]?.endAt).toBe(samples[3]?.at);
   });
 
+  it('샘플이 빠진 곳에서는 구간을 나누고, 길이는 시각으로 잰다', () => {
+    // 09:12, 09:13 미수신 → 09:14~09:15 로그 없음 → 09:16 미수신
+    const samples = [
+      sample(0),
+      sample(1, { gpsFix: false }),
+      sample(2, { gpsFix: false }),
+      sample(5, { gpsFix: false }),
+    ];
+    expect(gpsGaps(samples).map((g) => [g.startIndex, g.endIndex, g.minutes])).toEqual([
+      [1, 2, 2],
+      [3, 3, 1],
+    ]);
+  });
+
   it('구간 안의 위치 없는 기록만 센다', () => {
     const samples = [sample(0), sample(1, { gpsFix: false }), sample(2)];
     const [gap] = gpsGaps(samples);

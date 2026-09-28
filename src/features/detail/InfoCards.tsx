@@ -89,7 +89,7 @@ export function RecordInfoCard({ record }: { record: PoleRecord }) {
 
 /** 판정 검수: 맞음 / 오탐. 누른 쪽이 밝은 면으로 반전되고 선택 취소할 수 있다. */
 export function ReviewCard({ record }: { record: PoleRecord }) {
-  const update = useUpdateRecord();
+  const update = useUpdateRecord(record.id);
   const set = (review: ReviewResult | null) => update.mutate({ record, patch: { review } });
   const option = (value: ReviewResult, label: string, icon: 'check' | 'cross') => (
     <button
@@ -140,7 +140,7 @@ export function ReviewCard({ record }: { record: PoleRecord }) {
 
 /** 처리 상태: 신규 → 확인 → 철거 예정 → 철거 완료. 단계를 눌러 바꾸고 한 단계씩 되돌린다. */
 export function StatusCard({ record }: { record: PoleRecord }) {
-  const update = useUpdateRecord();
+  const update = useUpdateRecord(record.id);
   const status = record.status;
   const current = status ? STATUS_FLOW.indexOf(status) : -1;
 

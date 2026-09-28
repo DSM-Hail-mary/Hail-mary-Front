@@ -33,11 +33,17 @@ export interface GradeCounts {
   ok: number;
 }
 
-/** KPI·등급 세그먼트 집계. 오탐 판정 기록은 뺀다. */
-export function countByGrade(records: readonly PoleRecord[]): GradeCounts {
+/**
+ * 등급별 집계. KPI는 오탐 판정 기록을 뺀다 (명세서 4.3).
+ * 목록 세그먼트는 보이는 행 수와 맞추려고 `includeFalsePositives`로 오탐도 센다.
+ */
+export function countByGrade(
+  records: readonly PoleRecord[],
+  { includeFalsePositives = false }: { includeFalsePositives?: boolean } = {},
+): GradeCounts {
   const counts: GradeCounts = { total: 0, danger: 0, warn: 0, ok: 0 };
   for (const r of records) {
-    if (isFalsePositive(r)) continue;
+    if (!includeFalsePositives && isFalsePositive(r)) continue;
     counts.total += 1;
     counts[r.grade] += 1;
   }
@@ -95,6 +101,14 @@ export function sortRecords(records: readonly PoleRecord[], sort: SortKey): Pole
   return copy.sort(byTime);
 }
 
+/** CSV 내보내기 대상 (명세서 4.6): 위험 전주, 오탐 제외, 기록 시각순. */
+export function exportableRecords(records: readonly PoleRecord[]): PoleRecord[] {
+  return sortRecords(
+    records.filter((r) => r.grade === 'danger' && !isFalsePositive(r)),
+    'time',
+  );
+}
+
 /** 목록·지도에 보일 기록 (필터 + 정렬). */
 export function applyFilters(records: readonly PoleRecord[], f: RecordFilters): PoleRecord[] {
   return sortRecords(
@@ -130,12 +144,12 @@ export interface QueuePosition {
 }
 
 /**
- * 상세 화면 "위험 전주 n / N" 이동. 위험 등급 기록을 기록 시각순으로 돈다.
+ * 상세 화면 "위험 전주 n / N" 이동. 위험 등급 기록(오탐 제외)을 기록 시각순으로 돈다.
  * 현재 기록이 위험이 아니면 기록 시각 기준으로 앞뒤 위험 전주를 찾는다.
  */
 export function dangerQueuePosition(records: readonly PoleRecord[], currentId: string): QueuePosition {
   const queue = sortRecords(
-    records.filter((r) => r.grade === 'danger'),
+    records.filter((r) => r.grade === 'danger' && !isFalsePositive(r)),
     'time',
   );
   const index = queue.findIndex((r) => r.id === currentId);

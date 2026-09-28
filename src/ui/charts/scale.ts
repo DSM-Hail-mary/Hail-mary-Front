@@ -27,7 +27,9 @@ export interface AxisOptions {
 export function axisScale(values: readonly number[], opts: AxisOptions): AxisScale {
   const dataMin = values.length ? Math.min(...values) : 0;
   const dataMax = values.length ? Math.max(...values) : 1;
-  const min = opts.zeroBased ? 0 : Math.floor(dataMin / 10) * 10;
+  // 기준선이 데이터보다 낮아도(과열 상태) 축 안에 보이도록 아래쪽 범위에도 포함한다.
+  const low = Math.min(dataMin, opts.threshold ?? Number.POSITIVE_INFINITY);
+  const min = opts.zeroBased ? 0 : Math.floor(low / 10) * 10;
   const top = Math.max(dataMax, opts.threshold ?? Number.NEGATIVE_INFINITY, min + 1);
   const step = niceStep((top - min) / 2);
   const ticks: [number, number, number] = [min, min + step, min + step * 2];
