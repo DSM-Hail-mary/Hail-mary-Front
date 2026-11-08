@@ -127,6 +127,7 @@ src/
 - 화면 문구는 `src/domain/labels.ts`, 색·치수는 CSS 변수(`--pw-*`)에서만 바꿉니다.
 - 서버 데이터는 TanStack Query로 캐시하고, 처리 상태·검수 변경은 낙관적으로 바로 반영한 뒤 실패하면 되돌립니다.
 - 동기화가 "진행 중 → 완료"로 바뀌면 데이터를 모두 다시 받습니다 (화면 표시는 없음, 서버가 응답하지 않으면 1분 간격으로 늦춤).
+- `http` 모드에서는 기록·주행·날짜 목록을 3초마다 다시 받아, 주행 중 들어온 판정이 새로고침 없이 뜹니다 (`config.recordsPollMs`). 기록을 저장하는 동안에는 쉽니다.
 - 테마: 상단 바 Black / White. 색은 모두 CSS 변수라 `src/styles/tokens.app.css`의 `:root[data-theme='light']`에서 밝은 테마 값을 바꿉니다.
 - 스타일은 CSS Modules. 색은 새 hue를 추가하지 않습니다 (DESIGN.md "색").
 
