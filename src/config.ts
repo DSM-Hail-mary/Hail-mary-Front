@@ -38,4 +38,6 @@ export const config = {
   },
   /** 상단 바 동기화 상태를 다시 묻는 간격. */
   syncPollMs: 5000,
+  /** http 모드에서 지도·목록 데이터(기록·주행·날짜)를 다시 묻는 간격. 주행 중 들어온 판정이 새로고침 없이 뜬다. */
+  recordsPollMs: 3000,
 } as const;

@@ -16,24 +16,42 @@ export const queryKeys = {
   sync: () => ['sync'] as const,
 };
 
+/**
+ * 지도·목록 데이터를 주기적으로 다시 받는 간격. http 모드에서만 묻는다 (mock은 데이터가 바뀌지 않음).
+ * 기록을 저장하는 중에는 쉰다 — 저장 전에 나간 응답이 낙관적으로 바꾼 값을 덮지 않도록.
+ * 저장이 끝나면 onSettled 무효화로 다시 받으면서 간격이 다시 계산된다.
+ */
+function livePollMs(qc: QueryClient) {
+  return () => (config.apiMode === 'http' && qc.isMutating() === 0 ? config.recordsPollMs : false);
+}
+
 export function useDriveDates() {
   const api = useApi();
-  return useQuery({ queryKey: queryKeys.driveDates(), queryFn: () => api.listDriveDates() });
+  const qc = useQueryClient();
+  return useQuery({
+    queryKey: queryKeys.driveDates(),
+    queryFn: () => api.listDriveDates(),
+    refetchInterval: livePollMs(qc),
+  });
 }
 
 export function useDrives(date: DateScope) {
   const api = useApi();
+  const qc = useQueryClient();
   return useQuery({
     queryKey: queryKeys.drives(date),
     queryFn: () => api.listDrives(isAllDates(date) ? null : date),
+    refetchInterval: livePollMs(qc),
   });
 }
 
 export function useRecords(date: DateScope) {
   const api = useApi();
+  const qc = useQueryClient();
   return useQuery({
     queryKey: queryKeys.records(date),
     queryFn: () => api.listRecords(isAllDates(date) ? null : date),
+    refetchInterval: livePollMs(qc),
   });
 }
 
