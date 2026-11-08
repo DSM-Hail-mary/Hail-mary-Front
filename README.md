@@ -11,7 +11,7 @@
 
 ![React](https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white) ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=flat-square&logo=leaflet&logoColor=white)
 
-<sub>[HailMary 조직](https://github.com/DSM-Hail-mary) · [main](https://github.com/DSM-Hail-mary/Hail-mary-main) · [Camera](https://github.com/DSM-Hail-mary/Hail-mary-Camera) · [Server](https://github.com/DSM-Hail-mary/Hail-mary-Server) · [Front](https://github.com/DSM-Hail-mary/Hail-mary-Front)</sub>
+<sub>[HailMary 조직](https://github.com/DSM-Hail-mary) · [main](https://github.com/DSM-Hail-mary/Hail-mary-main) · [Server](https://github.com/DSM-Hail-mary/Hail-mary-Server) · [Front](https://github.com/DSM-Hail-mary/Hail-mary-Front)</sub>
 
 </div>
 
