@@ -30,6 +30,7 @@ export const poleRecordSchema = z.object({
   hazard: hazard.nullable(),
   status: z.enum(['new', 'checked', 'planned', 'removed']).nullable(),
   review: z.enum(['correct', 'false_positive']).nullable(),
+  plannedDate: z.string().nullable(),
   basis: basis.nullable(),
   thumbnailUrl: z.string(),
   crops: z.array(z.object({ id: z.string(), url: z.string(), detections: z.array(detection) })),

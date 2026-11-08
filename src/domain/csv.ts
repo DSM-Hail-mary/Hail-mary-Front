@@ -2,8 +2,8 @@ import { GRADE_LABEL, hazardLabel, poleIdLabel, statusLabel } from './labels';
 import { formatDateTime } from './format';
 import type { PoleRecord } from './types';
 
-/** 명세서 4.6 내보내기 열: 전주 ID, 좌표, 등급, 위험 유형, 기록 시각, 처리 상태 (+ 검수). */
-const HEADER = ['전주 ID', '위도', '경도', '등급', '위험 유형', '기록 시각', '처리 상태', '검수'];
+/** 명세서 4.6 내보내기 열: 전주 ID, 좌표, 등급, 위험 유형, 기록 시각, 처리 상태 (+ 철거 예정일, 검수). */
+const HEADER = ['전주 ID', '위도', '경도', '등급', '위험 유형', '기록 시각', '처리 상태', '철거 예정일', '검수'];
 
 const REVIEW_LABEL = { correct: '맞음', false_positive: '오탐' } as const;
 
@@ -22,6 +22,7 @@ export function recordsToCsv(records: readonly PoleRecord[]): string {
     hazardLabel(r.hazard),
     formatDateTime(r.recordedAt),
     statusLabel(r.status),
+    r.plannedDate ?? '',
     r.review ? REVIEW_LABEL[r.review] : '미검수',
   ]);
   return [HEADER, ...rows].map((row) => row.map(escapeCell).join(',')).join('\r\n');

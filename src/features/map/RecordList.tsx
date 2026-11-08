@@ -1,6 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { downloadCsv, recordsToCsv } from '@/domain/csv';
-import { formatShortDateTime, formatTime } from '@/domain/format';
+import { formatPlannedDate, formatShortDateTime, formatTime } from '@/domain/format';
 import { GRADES, GRADE_LABEL, HAZARD_LABEL, STATUS_LABEL, poleIdLabel } from '@/domain/labels';
 import {
   isFalsePositive,
@@ -255,6 +255,12 @@ function RecordRow({
             <span className={styles.noLocation}>
               <Icon name="pinOff" size={12} />
               위치 없음
+            </span>
+          )}
+          {record.status === 'planned' && record.plannedDate && (
+            <span className={styles.plannedDate}>
+              <Icon name="calendar" size={12} />
+              <span className="mono">{formatPlannedDate(record.plannedDate)}</span>
             </span>
           )}
           {fp && <FalsePositiveTag />}

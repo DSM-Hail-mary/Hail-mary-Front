@@ -98,7 +98,7 @@ function patchCachedRecord(qc: QueryClient, id: string, date: string, patch: Rec
 }
 
 /**
- * 처리 상태·검수 결과 변경. 화면에 바로 반영(낙관적 업데이트)하고
+ * 처리 상태·철거 예정일·검수 결과 변경. 화면에 바로 반영(낙관적 업데이트)하고
  * 서버가 거절하면 바꾼 필드만 이전 값으로 되돌린다.
  * 같은 기록의 저장은 순서대로 하나씩 보낸다 (scope) — 앞 저장의 되돌리기가 뒤 저장을 덮지 않도록.
  */
@@ -120,6 +120,7 @@ export function useUpdateRecord(recordId: string) {
       const previous: RecordPatch = {};
       if ('status' in patch) previous.status = current.status;
       if ('review' in patch) previous.review = current.review;
+      if ('plannedDate' in patch) previous.plannedDate = current.plannedDate;
       patchCachedRecord(qc, record.id, date, patch);
       return { previous, date };
     },

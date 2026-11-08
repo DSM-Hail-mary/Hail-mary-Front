@@ -42,6 +42,11 @@ export function formatShortDateTime(iso: string): string {
   return `${p.month}.${p.day} ${p.hour}:${p.minute}:${p.second}`;
 }
 
+/** 목록용 철거 예정일: "2026-10-08" → "10.08 예정" (날짜만 있는 값이라 시간대 변환 없이 자른다) */
+export function formatPlannedDate(date: string): string {
+  return `${date.slice(5, 7)}.${date.slice(8, 10)} 예정`;
+}
+
 /** "09:15:22" */
 export function formatTime(iso: string): string {
   const p = parts(iso);

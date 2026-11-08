@@ -127,6 +127,12 @@
   color: var(--pw-text-muted);
 }
 
+.plannedDate {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .noLocation {
   display: flex;
   align-items: center;

@@ -95,6 +95,9 @@ export function createMockApi(options: MockApiOptions = {}): HailMaryApi {
       if (patch.status !== undefined && r.status === null && patch.status !== null) {
         return Promise.reject(new ApiError(422, '양호 기록은 처리 상태를 가질 수 없습니다'));
       }
+      if (patch.plannedDate != null && r.grade === 'ok') {
+        return Promise.reject(new ApiError(422, '양호 기록에는 철거 예정일을 지정할 수 없습니다'));
+      }
       const next: PoleRecord = { ...r, ...patch };
       records.set(id, next);
       return delay(next);

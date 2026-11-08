@@ -135,6 +135,35 @@ test.describe('B. 전주 상세·검수', () => {
     await expect(rows(page).filter({ hasText: '3501-12669-N' })).toContainText('철거 예정');
   });
 
+  test('철거 예정일: 철거 예정에서 고르고, 철거 완료 뒤에도 보이고, 미정으로 되돌린다', async ({ page }) => {
+    await page.goto(`/#/poles/${DANGER}`);
+    const status = page.getByRole('region', { name: '처리 상태' });
+    const picker = status.getByRole('button', { name: /철거 예정일/ });
+    await expect(picker).toHaveCount(0);
+
+    await status.getByRole('button', { name: /철거 예정$/ }).click();
+    await expect(picker).toContainText('미정');
+    // 달력은 오늘이 있는 달부터 연다
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth() + 1;
+    const mm = String(m).padStart(2, '0');
+    await picker.click();
+    await status.getByRole('button', { name: `${y}년 ${m}월 15일` }).click();
+    await expect(picker).toContainText(`${m}. 15`);
+
+    await page.goto(`/#/map?date=${DAY}`);
+    await expect(rows(page).filter({ hasText: '3501-12669-N' })).toContainText(`${mm}.15 예정`);
+
+    await page.goto(`/#/poles/${DANGER}`);
+    await status.getByRole('button', { name: /철거 완료/ }).click();
+    await expect(status).toContainText(`철거 예정일 ${y}. ${m}. 15`);
+    await status.getByRole('button', { name: '되돌리기' }).click();
+    await picker.click();
+    await page.getByRole('option', { name: '미정' }).click();
+    await expect(picker).toContainText('미정');
+  });
+
   test('양호 기록은 처리 대상이 아니다', async ({ page }) => {
     await page.goto(`/#/poles/${rec('3500-12668-E')}`);
     await expect(page.getByText('양호 판정이라 처리할 항목이 없습니다.')).toBeVisible();

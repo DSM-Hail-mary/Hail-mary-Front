@@ -15,7 +15,7 @@
 | GET | `/api/v1/drives?date=YYYY-MM-DD` | `Drive[]` | 지도 주행 경로. **`date` 없이 부르면 전체 기간** |
 | GET | `/api/v1/records?date=YYYY-MM-DD` | `PoleRecord[]` | 지도 마커·목록·KPI. **`date` 없이 부르면 전체 기간** (기준 날짜 "전체 기간") |
 | GET | `/api/v1/records/{id}` | `PoleRecord` | 상세 화면 (404 → "기록을 찾을 수 없습니다") |
-| PATCH | `/api/v1/records/{id}` | `PoleRecord` | 처리 상태·판정 검수 변경. 본문 `{ "status"?: ..., "review"?: ... }` |
+| PATCH | `/api/v1/records/{id}` | `PoleRecord` | 처리 상태·철거 예정일·판정 검수 변경. 본문 `{ "status"?: ..., "plannedDate"?: ..., "review"?: ... }` |
 | GET | `/api/device/session/latest` | 서버 명세 형식 (아래) | 기기 상태 화면 — 가장 최근 주행 세션. 404면 "기록 없음" |
 | GET | `/api/v1/sync` | `SyncStatus` | 상단 바 동기화 상태 (5초 간격, 진행 중이면 1초) |
 | POST | `/api/v1/sync/retry` | `SyncStatus` | "다시 시도" |
@@ -25,6 +25,8 @@
 - **오탐(`review: "false_positive"`)** 으로 바뀌면 해당 크롭을 재학습용 폴더에 저장한다 (명세서 4.3).
   집계 제외는 프론트가 처리한다.
 - **양호 기록**은 `status: null`. 양호 기록에 처리 상태를 주는 PATCH는 422로 거절한다.
+- **철거 예정일 `plannedDate`** 는 `YYYY-MM-DD` 또는 `null`(미정). 응답에 항상 넣는다. 처리 상태와 따로 저장해
+  상태를 바꿔도 지우지 않는다 (철거 완료 뒤에도 남음). 양호 기록에 `null`이 아닌 값을 주는 PATCH는 422로 거절한다.
 - **동기화 중복 방지**: 같은 전주 기록이 다시 들어와도 기록 ID 기준으로 덮어쓴다 (명세서 6장).
 - **GPS 미수신 기록**은 `position: null`, `poleId: null` ("ID 미할당"). ID 규칙은 명세서 10장 미정 사항.
 - `basis`(등급 근거 단계 0/1/2)와 경계값은 판정 쪽에서 정해 내려준다 (명세서 10장 미정 사항).
@@ -44,6 +46,7 @@
   "hazard": "nest",
   "status": "new",
   "review": null,
+  "plannedDate": null,
   "basis": { "metric": "nest_size", "level": 2 },
   "thumbnailUrl": "/media/2026-09-27/3501-12669-N/thumb.jpg",
   "crops": [

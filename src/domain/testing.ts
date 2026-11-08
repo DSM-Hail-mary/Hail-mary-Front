@@ -13,6 +13,7 @@ export function makeRecord(overrides: Partial<PoleRecord> = {}): PoleRecord {
     hazard: 'nest',
     status: 'new',
     review: null,
+    plannedDate: null,
     basis: { metric: 'nest_size', level: 2 },
     thumbnailUrl: 'thumb.jpg',
     crops: [],
