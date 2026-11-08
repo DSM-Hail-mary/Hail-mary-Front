@@ -1,7 +1,26 @@
-# HailMary Front
+<div align="center">
 
-복귀 후 사무실에서 보는 **전주 위험(까치집·수목) 지도 대시보드**입니다. 차량의 Jetson이 오프라인으로
-기록한 판정 결과를 Wi-Fi 동기화 후 지도·목록으로 보고, 상세 화면에서 판정을 검수하고 처리 상태를 관리합니다.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DSM-Hail-mary/.github/main/profile/assets/hailmary-logo-dark.png">
+  <img src="https://raw.githubusercontent.com/DSM-Hail-mary/.github/main/profile/assets/hailmary-logo-light.png" alt="HailMary" width="280">
+</picture>
+
+# HailMary · Front
+
+**전주 위험(까치집·수목) 지도 대시보드**
+
+![React](https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white) ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=flat-square&logo=leaflet&logoColor=white)
+
+<sub>[HailMary 조직](https://github.com/DSM-Hail-mary) · [main](https://github.com/DSM-Hail-mary/Hail-mary-main) · [Camera](https://github.com/DSM-Hail-mary/Hail-mary-Camera) · [Server](https://github.com/DSM-Hail-mary/Hail-mary-Server) · [Front](https://github.com/DSM-Hail-mary/Hail-mary-Front)</sub>
+
+</div>
+
+---
+
+## 역할
+
+HailMary 시스템의 **사무실용 대시보드**입니다. 차량의 Jetson이 기록한 판정 결과를 지도·목록으로 보고,
+상세 화면에서 판정을 검수하고 처리 상태를 관리합니다. 데이터는 [Server](https://github.com/DSM-Hail-mary/Hail-mary-Server)의 REST API에서 받습니다.
 
 - 기능 명세: [`docs/기능명세서.md`](docs/기능명세서.md)
 - 디자인·기획 원본(`docs/design/`, 기능명세서)과 로고 PNG는 옛 가칭 **PoleWatch**로 되어 있습니다. 앱 화면의 이름은 HailMary입니다.
