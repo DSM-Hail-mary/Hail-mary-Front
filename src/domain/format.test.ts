@@ -5,6 +5,7 @@ import {
   formatDateLabel,
   formatDateTime,
   formatDecimal,
+  formatPlannedDate,
   formatSyncTime,
   formatTime,
   isDateString,
@@ -46,5 +47,9 @@ describe('format', () => {
     expect(headingLabel(92)).toBe('동 (E)');
     expect(headingLabel(-90)).toBe('서 (W)');
     expect(headingLabel(null)).toBe('알 수 없음');
+  });
+
+  it('철거 예정일', () => {
+    expect(formatPlannedDate('2026-10-08')).toBe('10.08 예정');
   });
 });

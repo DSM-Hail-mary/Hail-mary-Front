@@ -39,6 +39,19 @@ describe('mock API', () => {
     });
   });
 
+  it('철거 예정일을 저장하고 처리 상태를 바꿔도 남긴다, 양호 기록에는 줄 수 없다', async () => {
+    const api = createMockApi({ latencyMs: 0, dataset: createSampleDataset() });
+    const id = '2026-09-27_3501-12669-N';
+    expect((await api.updateRecord(id, { status: 'planned', plannedDate: '2026-10-15' })).plannedDate).toBe(
+      '2026-10-15',
+    );
+    expect((await api.updateRecord(id, { status: 'removed' })).plannedDate).toBe('2026-10-15');
+    expect((await api.updateRecord(id, { plannedDate: null })).plannedDate).toBeNull();
+    await expect(api.updateRecord('2026-09-27_3500-12668-E', { plannedDate: '2026-10-15' })).rejects.toMatchObject({
+      status: 422,
+    });
+  });
+
   it('동기화 재시도 → 진행 중 → 완료', async () => {
     let t = 0;
     const api = createMockApi({

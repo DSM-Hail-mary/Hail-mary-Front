@@ -103,6 +103,8 @@ interface DriveSpec {
   times: string[];
   statuses: Partial<Record<string, ProcessStatus>>;
   reviews: Partial<Record<string, ReviewResult>>;
+  /** 철거 예정일 (YYYY-MM-DD). */
+  plannedDates: Partial<Record<string, string>>;
   /** 크롭 개수 (3~5). 기본 4. */
   cropCounts: Partial<Record<string, number>>;
 }
@@ -116,6 +118,7 @@ const DRIVES: DriveSpec[] = [
     times: ['10:03:10', '10:05:02', '10:06:40', '10:09:12', '10:11:30', '10:13:05', '10:15:48', '10:17:20'],
     statuses: { '3501-12669-N': 'checked', '3502-12670-E': 'checked', '3502-12672-E': 'checked' },
     reviews: { '3501-12669-N': 'correct', '3502-12672-E': 'correct' },
+    plannedDates: {},
     cropCounts: {},
   },
   {
@@ -137,6 +140,7 @@ const DRIVES: DriveSpec[] = [
     ],
     statuses: { '3502-12670-E': 'new', '3502-12672-E': 'planned', '3502-12676-S': 'checked' },
     reviews: { '3502-12670-E': 'false_positive', '3502-12672-E': 'correct' },
+    plannedDates: { '3502-12672-E': '2026-09-30' },
     cropCounts: { '3502-12672-E': 5 },
   },
   {
@@ -170,6 +174,7 @@ const DRIVES: DriveSpec[] = [
       noloc: 'new',
     },
     reviews: {},
+    plannedDates: { '3502-12672-E': '2026-10-08' },
     cropCounts: { '3500-12669-E': 3, '3502-12672-E': 5, '3503-12674-E': 3, noloc: 3 },
   },
 ];
@@ -229,6 +234,7 @@ function buildRecords(): PoleRecord[] {
         hazard,
         status: hazard ? (spec.statuses[key] ?? 'new') : null,
         review: spec.reviews[key] ?? null,
+        plannedDate: hazard ? (spec.plannedDates[key] ?? null) : null,
         basis,
         thumbnailUrl: mockThumbnail(scene),
         crops,

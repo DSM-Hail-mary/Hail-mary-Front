@@ -83,6 +83,8 @@ export interface PoleRecord {
   /** 양호 기록은 `null` ("해당 없음"). */
   status: ProcessStatus | null;
   review: ReviewResult | null;
+  /** 철거 예정일 (YYYY-MM-DD). 정하지 않았으면 `null`. 처리 상태와 따로 저장돼 철거 완료 뒤에도 남는다. */
+  plannedDate: string | null;
   basis: GradeBasis | null;
   thumbnailUrl: string;
   crops: Crop[];
@@ -92,7 +94,7 @@ export interface PoleRecord {
 }
 
 /** 사용자가 바꿀 수 있는 필드. */
-export type RecordPatch = Partial<Pick<PoleRecord, 'status' | 'review'>>;
+export type RecordPatch = Partial<Pick<PoleRecord, 'status' | 'review' | 'plannedDate'>>;
 
 /** 주행 1회. */
 export interface Drive {

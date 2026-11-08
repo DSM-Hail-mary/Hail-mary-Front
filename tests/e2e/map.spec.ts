@@ -197,7 +197,7 @@ test.describe('A. 지도·목록', () => {
     const text = await readFile(await download.path(), 'utf8');
     expect(text.charCodeAt(0)).toBe(0xfeff);
     const lines = text.slice(1).split('\r\n');
-    expect(lines[0]).toBe('전주 ID,위도,경도,등급,위험 유형,기록 시각,처리 상태,검수');
+    expect(lines[0]).toBe('전주 ID,위도,경도,등급,위험 유형,기록 시각,처리 상태,철거 예정일,검수');
     expect(lines).toHaveLength(4);
     expect(lines.slice(1).every((l) => l.includes(',위험,'))).toBe(true);
   });

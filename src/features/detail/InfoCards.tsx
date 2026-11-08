@@ -1,5 +1,5 @@
 import { useUpdateRecord } from '@/api/queries';
-import { formatCoord, formatDateTime } from '@/domain/format';
+import { formatCoord, formatDateLabel, formatDateTime, today } from '@/domain/format';
 import {
   BASIS_LEVEL_GRADE,
   BASIS_LEVEL_LABEL,
@@ -13,11 +13,17 @@ import {
 import { historySummary, previousStatus } from '@/domain/records';
 import type { BasisLevel, PoleRecord, ReviewResult } from '@/domain/types';
 import { Button } from '@/ui/Button';
+import { Calendar } from '@/ui/Calendar';
 import { Card, Inset } from '@/ui/Card';
 import { Icon } from '@/ui/Icon';
+import { Picker } from '@/ui/Picker';
 import styles from './InfoCards.module.css';
 
 const LEVELS: BasisLevel[] = [0, 1, 2];
+
+/** 예정일 Picker에서 "미정"을 뜻하는 값. */
+const NO_DATE = '';
+const NO_MARKS: ReadonlyMap<string, number> = new Map();
 
 /** 기록 정보: 좌표 · 시각 · 유형 · 진행 방향 + 등급 근거 3단 게이지. */
 export function RecordInfoCard({ record }: { record: PoleRecord }) {
@@ -138,7 +144,10 @@ export function ReviewCard({ record }: { record: PoleRecord }) {
   );
 }
 
-/** 처리 상태: 신규 → 확인 → 철거 예정 → 철거 완료. 단계를 눌러 바꾸고 한 단계씩 되돌린다. */
+/**
+ * 처리 상태: 신규 → 확인 → 철거 예정 → 철거 완료. 단계를 눌러 바꾸고 한 단계씩 되돌린다.
+ * 철거 예정이면 예정일을 고르고, 철거 완료 뒤에도 정해 둔 예정일은 보여 준다.
+ */
 export function StatusCard({ record }: { record: PoleRecord }) {
   const update = useUpdateRecord(record.id);
   const status = record.status;
@@ -189,6 +198,29 @@ export function StatusCard({ record }: { record: PoleRecord }) {
         </div>
       ) : (
         <p className={styles.muted}>양호 판정이라 처리할 항목이 없습니다.</p>
+      )}
+      {status === 'planned' && (
+        <Picker
+          label="철거 예정일"
+          value={record.plannedDate ?? NO_DATE}
+          display={record.plannedDate ? formatDateLabel(record.plannedDate) : '미정'}
+          icon={<Icon name="calendar" />}
+          options={[{ value: NO_DATE, label: '미정' }]}
+          onChange={(date) => update.mutate({ record, patch: { plannedDate: date || null } })}
+          footer={
+            <Calendar
+              value={record.plannedDate ?? NO_DATE}
+              today={today()}
+              marked={NO_MARKS}
+              onChange={(date) => update.mutate({ record, patch: { plannedDate: date } })}
+            />
+          }
+        />
+      )}
+      {status === 'removed' && record.plannedDate && (
+        <p className={styles.muted}>
+          철거 예정일 <span className="mono">{formatDateLabel(record.plannedDate)}</span>
+        </p>
       )}
       {update.isError && (
         <p role="alert" className={styles.error}>
