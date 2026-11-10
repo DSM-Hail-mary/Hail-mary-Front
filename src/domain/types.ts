@@ -92,7 +92,7 @@ export interface PoleRecord {
 }
 
 /** 사용자가 바꿀 수 있는 필드. */
-export type RecordPatch = Partial<Pick<PoleRecord, 'status' | 'review'>>;
+export type RecordPatch = Partial<Pick<PoleRecord, 'status' | 'review' | 'poleId'>>;
 
 /** 주행 1회. */
 export interface Drive {

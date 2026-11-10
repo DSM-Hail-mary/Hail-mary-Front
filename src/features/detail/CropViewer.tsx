@@ -124,6 +124,50 @@ export function CropViewer({ crops }: { crops: readonly Crop[] }) {
     setDragging(false);
   };
 
+  // 사진 저장: 'full'=원본 전체, 'zoom'=지금 보고 있는 확대/이동 상태 그대로 (검출 박스 포함).
+  const [saving, setSaving] = useState(false);
+  const saveShot = async (mode: 'full' | 'zoom') => {
+    if (!crop || saving) return;
+    setSaving(true);
+    try {
+      const im = await loadCors(crop.url);
+      const c = document.createElement('canvas');
+      const ctx = c.getContext('2d');
+      if (!ctx) return;
+      if (mode === 'full') {
+        c.width = im.naturalWidth;
+        c.height = im.naturalHeight;
+        ctx.drawImage(im, 0, 0);
+        if (showBoxes) drawBoxes(ctx, crop.detections, 0, 0, c.width, c.height);
+      } else {
+        const outW = 1200;
+        const outH = Math.round(outW / FRAME_ASPECT);
+        c.width = outW;
+        c.height = outH;
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, outW, outH);
+        const a = im.naturalWidth / im.naturalHeight;
+        const cw = a >= FRAME_ASPECT ? outW : outH * a;
+        const ch = a >= FRAME_ASPECT ? outW / a : outH;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, outW, outH);
+        ctx.clip();
+        ctx.translate(outW / 2, outH / 2);
+        ctx.translate(pan.x * cw, pan.y * ch);
+        ctx.scale(zoom, zoom);
+        ctx.drawImage(im, -cw / 2, -ch / 2, cw, ch);
+        if (showBoxes) drawBoxes(ctx, crop.detections, -cw / 2, -ch / 2, cw, ch);
+        ctx.restore();
+      }
+      saveCanvas(c, `crop${index + 1}_${mode === 'full' ? 'full' : `zoom${Math.round(zoom * 100)}`}.png`);
+    } catch {
+      alert('이미지를 저장하지 못했습니다 (이미지 로드/CORS 실패).');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <section aria-label="크롭 뷰어" className={styles.viewer}>
       <div className={styles.toolbar}>
@@ -146,6 +190,15 @@ export function CropViewer({ crops }: { crops: readonly Crop[] }) {
           </span>
           <button type="button" aria-label="확대" disabled={zoom >= MAX_ZOOM} onClick={() => stepZoom(1)}>
             <Icon name="plus" />
+          </button>
+        </div>
+        <span className={styles.divider} aria-hidden="true" />
+        <div role="group" aria-label="사진 저장" className={styles.zoom}>
+          <button type="button" disabled={!crop || saving} title="원본 전체 저장" onClick={() => void saveShot('full')}>
+            풀샷
+          </button>
+          <button type="button" disabled={!crop || saving} title="지금 확대/이동 상태로 저장" onClick={() => void saveShot('zoom')}>
+            확대샷
           </button>
         </div>
       </div>
@@ -246,4 +299,58 @@ export function CropViewer({ crops }: { crops: readonly Crop[] }) {
 function scalePan(p: Pan, zoom: number): Pan {
   // 확대 배율만큼 중심을 옮겨야 그 지점이 틀 가운데에 온다.
   return { x: p.x * zoom, y: p.y * zoom };
+}
+
+/** canvas로 그리려면 CORS 허용 이미지가 필요하다(서버 /images는 CORS 허용).
+ * 캐시 버스터(_cors)를 붙여, <img>가 이미 CORS 없이 캐시해 둔 이미지와 충돌(taint)하지 않게 한다. */
+function loadCors(url: string): Promise<HTMLImageElement> {
+  const withCors = url + (url.includes('?') ? '&' : '?') + '_cors=1';
+  return new Promise((resolve, reject) => {
+    const im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error('image load failed'));
+    im.src = withCors;
+  });
+}
+
+/** canvas를 PNG 파일로 내려받는다. */
+function saveCanvas(canvas: HTMLCanvasElement, name: string) {
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }, 'image/png');
+}
+
+/** 검출 박스 + 라벨을 (ox,oy,w,h) 이미지 영역 위에 비율로 그린다. */
+function drawBoxes(
+  ctx: CanvasRenderingContext2D,
+  dets: readonly Detection[],
+  ox: number,
+  oy: number,
+  w: number,
+  h: number,
+) {
+  for (const d of dets) {
+    const x = ox + d.box.x * w;
+    const y = oy + d.box.y * h;
+    const color = d.kind === 'pole' ? '#5ac8fa' : '#ff3b30';
+    ctx.lineWidth = Math.max(2, w / 320);
+    ctx.strokeStyle = color;
+    ctx.strokeRect(x, y, d.box.w * w, d.box.h * h);
+    const label = `${DETECTION_LABEL[d.kind]} ${Math.round(d.score * 100)}%`;
+    const fs = Math.max(13, w / 55);
+    ctx.font = `600 ${fs}px sans-serif`;
+    const tw = ctx.measureText(label).width + 8;
+    ctx.fillStyle = color;
+    ctx.fillRect(x, Math.max(0, y - fs - 4), tw, fs + 4);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(label, x + 4, Math.max(fs, y - 4));
+  }
 }

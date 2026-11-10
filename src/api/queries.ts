@@ -112,6 +112,7 @@ export function useUpdateRecord(recordId: string) {
       const previous: RecordPatch = {};
       if ('status' in patch) previous.status = current.status;
       if ('review' in patch) previous.review = current.review;
+      if ('poleId' in patch) previous.poleId = current.poleId;
       patchCachedRecord(qc, record.id, date, patch);
       return { previous, date };
     },

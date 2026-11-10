@@ -1,7 +1,7 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { isNotFound } from '@/api/HailMaryApi';
-import { useRecord, useRecords } from '@/api/queries';
+import { useRecord, useRecords, useUpdateRecord } from '@/api/queries';
 import { useNavMemory } from '@/app/navMemory';
 import { routes } from '@/app/routes';
 import { ALL_DATES, dateOf, isAllDates } from '@/domain/format';
@@ -43,6 +43,77 @@ export function DetailPage() {
   return <Detail record={query.data} />;
 }
 
+/** 상단 전주 ID: 클릭하면 입력창으로 바뀌어 직접 입력/수정. Enter 저장, Esc 취소, 빈값이면 미할당. */
+function PoleIdField({ record }: { record: PoleRecord }) {
+  const update = useUpdateRecord(record.id);
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const start = () => {
+    setValue(record.poleId ?? '');
+    setEditing(true);
+  };
+  const commit = () => {
+    setEditing(false);
+    const next = value.trim() || null;
+    if (next !== (record.poleId ?? null)) update.mutate({ record, patch: { poleId: next } });
+  };
+
+  useEffect(() => {
+    if (editing) inputRef.current?.select();
+  }, [editing]);
+
+  return (
+    <h1
+      className={`mono ${styles.poleId} ${record.poleId ? '' : styles.unassigned}`}
+      style={{ margin: 0 }}
+      title={editing ? undefined : '클릭해서 전주 ID 입력/수정'}
+    >
+      {editing ? (
+        <input
+          ref={inputRef}
+          value={value}
+          autoFocus
+          placeholder="전주 ID 입력"
+          aria-label="전주 ID 입력"
+          onChange={(e) => setValue(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commit();
+            else if (e.key === 'Escape') setEditing(false);
+          }}
+          style={{
+            font: 'inherit',
+            color: 'inherit',
+            background: 'rgba(255,255,255,0.1)',
+            border: '1px solid rgba(255,255,255,0.35)',
+            borderRadius: 4,
+            padding: '0 6px',
+            width: 'min(240px, 42vw)',
+          }}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={start}
+          style={{
+            font: 'inherit',
+            color: 'inherit',
+            background: 'none',
+            border: 'none',
+            borderBottom: '1px dashed rgba(255,255,255,0.35)',
+            padding: 0,
+            cursor: 'pointer',
+          }}
+        >
+          {poleIdLabel(record.poleId)}
+        </button>
+      )}
+    </h1>
+  );
+}
+
 function Detail({ record }: { record: PoleRecord }) {
   const navigate = useNavigate();
   const date = dateOf(record.recordedAt);
@@ -73,9 +144,7 @@ function Detail({ record }: { record: PoleRecord }) {
           지도
         </ButtonLink>
         <span className={styles.vdivider} aria-hidden="true" />
-        <h1 className={`mono ${styles.poleId} ${record.poleId ? '' : styles.unassigned}`}>
-          {poleIdLabel(record.poleId)}
-        </h1>
+        <PoleIdField record={record} />
         <span className={styles.gradeBadge} data-grade={record.grade}>
           <GradeGlyph grade={record.grade} size="sm" />
           {GRADE_LABEL[record.grade]}
