@@ -15,16 +15,17 @@ export const serverDeviceSessionSchema = z
     device: z.string(),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     start_time: hhmm,
-    end_time: hhmm,
-    duration_sec: z.number().int().nonnegative(),
-    max_temp: z.number(),
-    avg_temp: z.number(),
-    throttle_temp: z.number(),
-    avg_power: z.number(),
-    max_power: z.number(),
-    frame_drops: z.number().int().nonnegative(),
-    total_frames: z.number().int().nonnegative(),
-    gps_reception: z.number().min(0).max(1),
+    // 진행 중/미완료 세션(데모 라이브 등)은 종료·요약값이 아직 null일 수 있다 → 허용하고 아래에서 기본값 처리.
+    end_time: hhmm.nullable(),
+    duration_sec: z.number().int().nonnegative().nullable(),
+    max_temp: z.number().nullable(),
+    avg_temp: z.number().nullable(),
+    throttle_temp: z.number().nullable(),
+    avg_power: z.number().nullable(),
+    max_power: z.number().nullable(),
+    frame_drops: z.number().int().nonnegative().nullable(),
+    total_frames: z.number().int().nonnegative().nullable(),
+    gps_reception: z.number().min(0).max(1).nullable(),
     telemetry: z.object({
       t: z.array(hhmm),
       temp: z.array(z.number()),
@@ -65,22 +66,24 @@ export function toDeviceSession(s: ServerDeviceSession): DeviceSession {
       gpsFix: s.telemetry.gps[i] === 1,
     };
   });
-  const endsNextDay = s.end_time < s.start_time;
+  // 미완료 세션: 종료시각 없으면 시작시각으로(진행 중). 요약값 없으면 0.
+  const endTime = s.end_time ?? s.start_time;
+  const endsNextDay = endTime < s.start_time;
   return {
     id: String(s.id),
     device: s.device,
     date: s.date,
     startedAt: isoAt(s.date, s.start_time),
-    endedAt: isoAt(s.date, s.end_time, endsNextDay ? 1 : 0),
-    durationSec: s.duration_sec,
-    maxTemp: s.max_temp,
-    avgTemp: s.avg_temp,
-    throttleTemp: s.throttle_temp,
-    avgPower: s.avg_power,
-    maxPower: s.max_power,
-    frameDrops: s.frame_drops,
-    totalFrames: s.total_frames,
-    gpsReception: s.gps_reception,
+    endedAt: isoAt(s.date, endTime, endsNextDay ? 1 : 0),
+    durationSec: s.duration_sec ?? 0,
+    maxTemp: s.max_temp ?? 0,
+    avgTemp: s.avg_temp ?? 0,
+    throttleTemp: s.throttle_temp ?? 87,
+    avgPower: s.avg_power ?? 0,
+    maxPower: s.max_power ?? 0,
+    frameDrops: s.frame_drops ?? 0,
+    totalFrames: s.total_frames ?? 0,
+    gpsReception: s.gps_reception ?? 0,
     samples,
   };
 }

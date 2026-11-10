@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { useLatestDeviceSession, useRecords } from '@/api/queries';
+import { useMemo, type ReactNode } from 'react';
+import { useLatestDeviceSession, useRecords, useResetDemo } from '@/api/queries';
 import { routes } from '@/app/routes';
 import { gpsGaps, locationlessRecordsIn, summarizeDevice } from '@/domain/device';
 import { dateOf, formatDateShort, formatDecimal, formatHourMinute } from '@/domain/format';
@@ -15,12 +15,31 @@ import styles from './DevicePage.module.css';
  * 화면 C. 기기 상태 (벤치마크 확인용).
  * 서버 GET /api/device/session/latest 의 가장 최근 주행 세션을 보여 준다 (백엔드 기기 상태 API 명세 §3).
  */
+/** 데모용 '웹 기록 초기화' 버튼. 확인 후 서버의 모든 기록을 비운다. */
+function DemoResetButton() {
+  const reset = useResetDemo();
+  const onClick = () => {
+    if (reset.isPending) return;
+    const ok = window.confirm(
+      '대시보드의 모든 웹 기록(기록·주행·세션·사진)을 삭제합니다.\n되돌릴 수 없습니다. 계속할까요?',
+    );
+    if (ok) reset.mutate();
+  };
+  return (
+    <Button variant="ghost" onClick={onClick} disabled={reset.isPending}>
+      {reset.isPending ? '초기화 중…' : reset.isError ? '초기화 실패 · 재시도' : '웹 기록 초기화 (데모용)'}
+    </Button>
+  );
+}
+
 export function DevicePage() {
   const query = useLatestDeviceSession();
 
-  if (query.isPending) return <Loading />;
-  if (query.isError) {
-    return (
+  let body: ReactNode;
+  if (query.isPending) {
+    body = <Loading />;
+  } else if (query.isError) {
+    body = (
       <EmptyState
         icon="error"
         title="기기 상태를 불러오지 못했습니다"
@@ -29,15 +48,36 @@ export function DevicePage() {
         서버 연결을 확인하세요. {query.error.message}
       </EmptyState>
     );
-  }
-  if (!query.data) {
-    return (
+  } else if (!query.data) {
+    body = (
       <EmptyState icon="pole" title="주행 기록이 없습니다">
         차량 주행이 끝나고 기기 로그가 서버에 올라오면 여기에 표시됩니다.
       </EmptyState>
     );
+  } else {
+    body = <DeviceDashboard session={query.data} />;
   }
-  return <DeviceDashboard session={query.data} />;
+
+  // 기기 상태 페이지 상단에 '웹 기록 초기화'(데모용) 버튼을 항상 둔다.
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          gap: 10,
+          padding: '8px 16px',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          flex: '0 0 auto',
+        }}
+      >
+        <span style={{ fontSize: 12, color: '#9aa' }}>현장 시연용 · 대시보드 비우기</span>
+        <DemoResetButton />
+      </div>
+      <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>{body}</div>
+    </div>
+  );
 }
 
 function DeviceDashboard({ session }: { session: DeviceSession }) {

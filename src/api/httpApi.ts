@@ -81,5 +81,8 @@ export function createHttpApi(baseUrl: string): HailMaryApi {
     },
     getSyncStatus: () => request(syncStatusSchema, '/api/v1/sync'),
     retrySync: () => request(syncStatusSchema, '/api/v1/sync/retry', { method: 'POST' }),
+    resetDemo: async () => {
+      await request(z.object({ ok: z.boolean() }), '/api/v1/demo/reset', { method: 'POST' });
+    },
   };
 }

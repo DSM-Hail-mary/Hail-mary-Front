@@ -109,5 +109,9 @@ export function createMockApi(options: MockApiOptions = {}): HailMaryApi {
       sync = { state: 'syncing', startedAt: now() };
       return delay(currentSync());
     },
+    resetDemo() {
+      // 목 모드에선 서버가 없으므로 동작 안 함(인터페이스 충족용).
+      return delay(undefined);
+    },
   };
 }

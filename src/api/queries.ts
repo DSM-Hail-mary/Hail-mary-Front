@@ -54,6 +54,16 @@ export function useLatestDeviceSession() {
   return useQuery({ queryKey: queryKeys.deviceSession(), queryFn: () => api.getLatestDeviceSession() });
 }
 
+/** 데모용: 웹 기록 전체 초기화. 성공 시 모든 쿼리를 새로 받아 화면을 비운다. */
+export function useResetDemo() {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.resetDemo(),
+    onSuccess: () => void qc.invalidateQueries(),
+  });
+}
+
 function findCachedRecord(qc: QueryClient, id: string): PoleRecord | undefined {
   for (const [, list] of qc.getQueriesData<PoleRecord[]>({ queryKey: [...queryKeys.all, 'records'] })) {
     const hit = list?.find((r) => r.id === id);

@@ -2,7 +2,7 @@ import L from 'leaflet';
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { CircleMarker, MapContainer, Marker, Polyline, ScaleControl, TileLayer, Tooltip } from 'react-leaflet';
 import { config } from '@/config';
-import { formatHourMinute } from '@/domain/format';
+import { formatHourMinute, isValidTime } from '@/domain/format';
 import { GRADE_LABEL, hazardLabel, poleIdLabel } from '@/domain/labels';
 import { isFalsePositive } from '@/domain/records';
 import type { Drive, LatLng, PoleRecord } from '@/domain/types';
@@ -167,11 +167,11 @@ export function PoleMap({ drives, records, selectedId, hoveredId, onSelect, onHo
         zoomControl={false}
         attributionControl
         keyboard
-        // 휠 줌: 단계에 끊기지 않고 굴린 만큼 (연속 줌). 마우스 휠 한 칸(약 100px) ≈ 0.8단계.
-        // 값이 클수록 한 칸에 덜 움직인다 (Leaflet 기본 60은 너무 크게, 240은 거의 안 움직였다).
+        // 휠 줌: 단계에 끊기지 않고 굴린 만큼 (연속 줌).
+        // 값이 작을수록 더 민감(적은 스크롤로 더 많이 줌). 터치패드는 delta가 작아 낮춰야 체감됨.
         zoomSnap={0}
-        wheelPxPerZoomLevel={120}
-        wheelDebounceTime={20}
+        wheelPxPerZoomLevel={50}
+        wheelDebounceTime={40}
         // +/− 버튼은 반 단계씩
         zoomDelta={0.5}
       >
@@ -309,7 +309,7 @@ function DriveLayer({ drive }: { drive: Drive }) {
         positions={route}
         pathOptions={{ className: styles.route, weight: 6, lineJoin: 'round', lineCap: 'round', interactive: false }}
       />
-      {start && (
+      {start && isValidTime(drive.startedAt) && (
         <CircleMarker
           center={start}
           radius={7}
@@ -320,7 +320,7 @@ function DriveLayer({ drive }: { drive: Drive }) {
           </Tooltip>
         </CircleMarker>
       )}
-      {end && (
+      {end && isValidTime(drive.endedAt) && (
         <CircleMarker
           center={end}
           radius={7}

@@ -18,6 +18,8 @@ export interface HailMaryApi {
   getLatestDeviceSession(): Promise<DeviceSession | null>;
   getSyncStatus(): Promise<SyncStatus>;
   retrySync(): Promise<SyncStatus>;
+  /** 데모용: 모든 웹 기록(기록·주행·세션·사진)을 초기화한다. */
+  resetDemo(): Promise<void>;
 }
 
 export class ApiError extends Error {

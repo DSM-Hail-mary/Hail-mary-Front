@@ -20,8 +20,20 @@ const partsFormatter = new Intl.DateTimeFormat('en-CA', {
   hourCycle: 'h23',
 });
 
+/** 유효한 시각 문자열/Date인지 (빈 값·null·Invalid Date 방어). */
+export function isValidTime(input: string | Date | null | undefined): boolean {
+  if (input == null || input === '') return false;
+  const date = typeof input === 'string' ? new Date(input) : input;
+  return !Number.isNaN(date.getTime());
+}
+
 function parts(input: string | Date): Parts {
   const date = typeof input === 'string' ? new Date(input) : input;
+  // 진행 중 주행의 빈 종료시각 등 잘못된 값은 던지지 않고 자리표시자로 (크래시 방지).
+  if (Number.isNaN(date.getTime())) {
+    return { year: '----', month: '--', day: '--', hour: '--',
+             minute: '--', second: '--', weekday: '' } as Parts;
+  }
   const out: Partial<Parts> = {};
   for (const p of partsFormatter.formatToParts(date)) {
     if (p.type in { year: 1, month: 1, day: 1, hour: 1, minute: 1, second: 1, weekday: 1 }) {
